@@ -1,8 +1,10 @@
 package org.usfirst.frc.team972.robot.motionlib;
 
-public class Trajectory {
+import java.io.Serializable;
 
-    public static class Pair {
+public class Trajectory implements Serializable {
+
+    public static class Pair implements Serializable {
         public Pair(Trajectory left, Trajectory right) {
             this.left = left;
             this.right = right;
@@ -12,7 +14,7 @@ public class Trajectory {
         public Trajectory right;
     }
 
-    public static class Segment {
+    public static class Segment implements Serializable {
 
         public double pos, vel, acc, jerk, heading, dt, x, y;
 

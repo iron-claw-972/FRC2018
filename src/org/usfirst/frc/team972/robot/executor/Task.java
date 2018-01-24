@@ -14,7 +14,7 @@ public abstract class Task {
 		finished = false;
 	}
 	
-	public abstract void init();
+	public abstract void init(double dt);
 	
 	public abstract void execute(double dt);
 	

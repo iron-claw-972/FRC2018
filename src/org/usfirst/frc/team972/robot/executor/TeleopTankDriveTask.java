@@ -12,17 +12,16 @@ public class TeleopTankDriveTask extends Task {
 	final int RIGHT_DRIVE_AXIS = 3;
 	final int SHIFT_BUTTON = 6;
 	final int TURBO_BUTTON = 8;
-	final double DEAD_BAND_THROTTLE = 0.05;
-	final double INERTIA_TO_POWER = 0.2;
-	
+	final double DEAD_BAND_THROTTLE = 0.005;
+
 	MainDriveTrain driveTrain;
 	UserInputGamepad uig;
 	
 	int driveGearMode = 0;
-
-	double leftSideInertiaAccum = 0;
-	double rightSideInertiaAccum = 0;
-	double maxInertia = 50;
+	
+	double leftDrive = 0;
+	double rightDrive = 0;
+	double easingValue = 0.1;
 	
 	public TeleopTankDriveTask(double _executionTime, UserInputGamepad _uig, MainDriveTrain _driveTrain) {
 		super(_executionTime);
@@ -31,13 +30,18 @@ public class TeleopTankDriveTask extends Task {
 		driveTrain = _driveTrain;
 	}
 	
+	private double interpolateValues(double want, double actual) {
+		double error = (want - actual) * easingValue;
+		return actual + error;
+	}
+	
 	//this is teleopPeriodic
 	public void execute(double dt) {
-		double leftDrive = uig.getStickA().getRawAxis(LEFT_DRIVE_AXIS);
-		double rightDrive = uig.getStickA().getRawAxis(RIGHT_DRIVE_AXIS);
+		double wantLeftDrive = uig.getStickA().getRawAxis(LEFT_DRIVE_AXIS);
+		double wantRightDrive = uig.getStickA().getRawAxis(RIGHT_DRIVE_AXIS);
 
-		leftDrive = handleDeadband(leftDrive, DEAD_BAND_THROTTLE);
-		rightDrive = handleDeadband(rightDrive, DEAD_BAND_THROTTLE);
+		wantLeftDrive = handleDeadband(wantLeftDrive, DEAD_BAND_THROTTLE);
+		wantRightDrive = handleDeadband(wantRightDrive, DEAD_BAND_THROTTLE);
 		
 		if(uig.getStickA().getRawButtonPressed(SHIFT_BUTTON)) {
 			if(driveGearMode == 0) {
@@ -55,31 +59,21 @@ public class TeleopTankDriveTask extends Task {
 			driveTrain.voltageCompensation();
 		}
 		
-		leftSideInertiaAccum = leftSideInertiaAccum + leftDrive;
-		rightSideInertiaAccum = rightSideInertiaAccum + rightDrive;
+		//leftDrive = wantLeftDrive;
+		//rightDrive = wantRightDrive;
 		
-		if(Math.abs(leftSideInertiaAccum) > maxInertia) {
-			leftSideInertiaAccum = Math.signum(leftSideInertiaAccum) * maxInertia;
-		} if(Math.abs(rightSideInertiaAccum) > maxInertia) {
-			rightSideInertiaAccum = Math.signum(rightSideInertiaAccum) * maxInertia;
-		}
-		
-		if(leftDrive == 0 && (Math.abs(leftSideInertiaAccum) > 0)) {
-			leftSideInertiaAccum = leftSideInertiaAccum -Math.signum(leftSideInertiaAccum) * 1;
-			leftDrive = (leftSideInertiaAccum/maxInertia) * INERTIA_TO_POWER;
-		} if(rightDrive == 0 && (Math.abs(rightSideInertiaAccum) > 0)) {
-			rightSideInertiaAccum = rightSideInertiaAccum -Math.signum(rightSideInertiaAccum) * 1;
-			rightDrive = (rightSideInertiaAccum/maxInertia) * INERTIA_TO_POWER;
-		}
+		leftDrive = interpolateValues(wantLeftDrive, leftDrive);
+		rightDrive = interpolateValues(wantRightDrive, rightDrive);
 		
 		leftDrive = handleDeadband(leftDrive, DEAD_BAND_THROTTLE);
 		rightDrive = handleDeadband(rightDrive, DEAD_BAND_THROTTLE);
 
+		RobotLogger.toast(leftDrive + " " + rightDrive);
 		driveTrain.driveSidesPWM(leftDrive,rightDrive);
 	}
 
 	@Override
-	public void init() {
+	public void init(double dt) {
 		// TODO Auto-generated method stub
 		
 	}

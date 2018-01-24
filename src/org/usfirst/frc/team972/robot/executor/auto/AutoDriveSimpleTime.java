@@ -26,7 +26,7 @@ public class AutoDriveSimpleTime extends Task {
 		}
 	}
 
-	public void init() {
+	public void init(double dt) {
 		
 	}
 

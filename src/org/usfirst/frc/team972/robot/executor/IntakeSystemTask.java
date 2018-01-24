@@ -26,7 +26,7 @@ public class IntakeSystemTask extends Task{
 	}
 
 	@Override
-	public void init() {
+	public void init(double dt) {
 		// TODO Auto-generated method stub
 		
 	}
