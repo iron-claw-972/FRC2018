@@ -19,7 +19,7 @@ public class TaskExecutor {
 		taskSetupList = null;
 	}
 	
-	private void stop() {
+	public void stop() {
 		clearTasks();
 	}
 	
@@ -79,11 +79,12 @@ public class TaskExecutor {
 			Task task = taskList[i];
 			if(task != null) {
 				if(task.executionTime < timestamp) {
+					double taskStartTime = task.executionTime;
+					
 					if(task.executed == false) {
-						task.init();
+						task.init(timestamp - taskStartTime);
 					}
 	
-					double taskStartTime = task.executionTime;
 					task.execute(timestamp - taskStartTime);
 	
 					task.setExecuted();

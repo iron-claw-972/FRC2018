@@ -2,6 +2,7 @@ package org.usfirst.frc.team972.robot.executor.auto;
 
 import org.usfirst.frc.team972.robot.RobotLogger;
 import org.usfirst.frc.team972.robot.executor.Task;
+import org.usfirst.frc.team972.robot.executor.TrajectoryExecutionTask;
 import org.usfirst.frc.team972.robot.motionlib.Trajectory;
 import org.usfirst.frc.team972.robot.motionlib.Trajectory.Segment;
 import org.usfirst.frc.team972.robot.motors.MainDriveTrain;
@@ -9,42 +10,61 @@ import org.usfirst.frc.team972.robot.ui.Sensors;
 
 public class AutoDriveVelocityProfileTask extends Task {
 
+	TrajectoryExecutionTask follower;
 	Trajectory[] wheelTrajectories;
-	MainDriveTrain mainDriveTrain;
 	Sensors sensors;
 	
 	double leftPower = 0;
 	double rightPower = 0;
 	
-	int currentVelocityIndex = 0;
 	double integratedVelocity = 0;
 	
-	public AutoDriveVelocityProfileTask(double _executionTime, Trajectory[] _traj, Sensors _sensors, MainDriveTrain _mainDriveTrain) {
+	double initTime = 0;
+	
+	public AutoDriveVelocityProfileTask(double _executionTime, Trajectory[] _traj, Sensors _sensors, TrajectoryExecutionTask _follower) {
 		super(_executionTime);
 		wheelTrajectories = _traj;
 		sensors = _sensors;
-		mainDriveTrain = _mainDriveTrain;
+		follower = _follower;
 	}
 
-	public void init() {
+	public void init(double dt) {
 		// TODO Auto-generated method stub
-		currentVelocityIndex = 0;
+		initTime = dt;
+	}
+	
+	public int getSegmentDt(double currentTime) {
+		Segment lastSeg = wheelTrajectories[0].getSegment(0);
+		for(int i=0; i<wheelTrajectories[0].getNumSegments(); i++) {
+			double segTime = wheelTrajectories[0].getSegment(i).dt * i;
+			if(currentTime < segTime) {
+				return i;
+			}
+		}
+		return wheelTrajectories[0].getNumSegments();
 	}
 
 	public void execute(double dt) {
+		dt = dt - initTime;
 		int numSegs = wheelTrajectories[0].getNumSegments();
-		if(currentVelocityIndex < numSegs) {
-			Segment leftSeg = wheelTrajectories[0].getSegment(currentVelocityIndex);
-			Segment rightSeg = wheelTrajectories[1].getSegment(currentVelocityIndex);
+		int currentSegIndex = getSegmentDt(dt);
+		if(currentSegIndex < numSegs) {
+			
+			//RobotLogger.toast("DT: " + dt + " Current Seg Index: " + currentSegIndex);
+			
+			Segment leftSeg = wheelTrajectories[0].getSegment(currentSegIndex);
+			Segment rightSeg = wheelTrajectories[1].getSegment(currentSegIndex);
 			
 			double desiredLeftSpeed = leftSeg.vel;
 			double desiredRightSpeed = rightSeg.vel;
+			double desiredLeftP = leftSeg.pos;
+			double desiredRightP = rightSeg.pos;
+			double desiredLeftA = leftSeg.acc;
+			double desiredRightA = rightSeg.acc;
 			
-			integratedVelocity = integratedVelocity + (desiredLeftSpeed * 0.02);
+			RobotLogger.toast("POSITION: " + desiredLeftP + " " + desiredRightP);
 			
-			RobotLogger.toast(desiredLeftSpeed + " " + desiredRightSpeed + " ------ " + integratedVelocity);
-			mainDriveTrain.driveSidesPWM(desiredLeftSpeed, desiredRightSpeed);
-			currentVelocityIndex++;
+			follower.setpoint(desiredLeftSpeed, desiredRightSpeed, desiredLeftP, desiredRightP, desiredLeftA, desiredRightA);
 		} else {
 			super.finish();
 		}
