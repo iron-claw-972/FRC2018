@@ -3,6 +3,7 @@ package org.usfirst.frc.team972.robot;
 import org.usfirst.frc.team972.robot.executor.IntakeSystemTask;
 import org.usfirst.frc.team972.robot.executor.TaskExecutor;
 import org.usfirst.frc.team972.robot.executor.TeleopTankDriveTask;
+import org.usfirst.frc.team972.robot.executor.Test;
 import org.usfirst.frc.team972.robot.executor.TrajectoryExecutionTask;
 import org.usfirst.frc.team972.robot.executor.auto.AutoDriveSimpleTime;
 import org.usfirst.frc.team972.robot.executor.auto.AutoDriveVelocityProfileTask;
@@ -16,6 +17,8 @@ import org.usfirst.frc.team972.robot.motors.MechanismActuators;
 import org.usfirst.frc.team972.robot.ui.Sensors;
 import org.usfirst.frc.team972.robot.ui.UserInputGamepad;
 
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
@@ -26,11 +29,12 @@ public class Robot extends IterativeRobot {
 
 	public static final double REAL_TIME_LOOP_HZ = 200;
 	public static final double MOTION_DT = 50;
-
+	
 	TaskExecutor taskExecutor = new TaskExecutor();
 	MainDriveTrain driveTrain = new MainDriveTrain();
 	MechanismActuators mechanismMotors = new MechanismActuators();
 	Sensors sensors = new Sensors();
+	Test tester;
 
 	AutoQuery autoQuery;
 
@@ -134,9 +138,15 @@ public class Robot extends IterativeRobot {
 
 		// EasyTeleop.teleopPeriodic();
 	}
-
+	
+	public void testInit() {
+		tester = new Test(driveTrain, mechanismMotors);
+		tester.init();
+	}
+	
 	public void testPeriodic() {
-
+		tester.periodic();
+		
 	}
 
 }

@@ -5,8 +5,8 @@ import com.ctre.phoenix.motorcontrol.can.*;
 
 public class MechanismActuators {
 	
-	WPI_TalonSRX intakeMotorLeft;
-	WPI_TalonSRX intakeMotorRight;
+	public WPI_TalonSRX intakeMotorLeft;
+	public WPI_TalonSRX intakeMotorRight;
 	
 	public void SetupIntakeMotors(int left, int right) {
 		intakeMotorLeft = new WPI_TalonSRX(left);
