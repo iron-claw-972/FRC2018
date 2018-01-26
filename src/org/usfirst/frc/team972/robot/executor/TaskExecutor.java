@@ -78,19 +78,25 @@ public class TaskExecutor {
 		for(int i=0; i<taskList.length; i++) {
 			Task task = taskList[i];
 			if(task != null) {
-				if(task.executionTime < timestamp) {
+				if((task.executionTime < timestamp) && task.allowedRun) {
 					double taskStartTime = task.executionTime;
+					boolean blocking = false;
 					
 					if(task.executed == false) {
 						task.init(timestamp - taskStartTime);
 					}
 	
 					task.execute(timestamp - taskStartTime);
-	
+					
 					task.setExecuted();
+					blocking = task.blocking();
+					
 					if(task.autoRemove || task.finished) {
 						taskList[i] = null;
 						RobotLogger.toast("Task: " + task + " is finished/removed at " + timestamp);
+					}
+					if(blocking) {
+						break;
 					}
 				}
 			}

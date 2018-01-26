@@ -165,8 +165,8 @@ public class MainDriveTrain {
 	
 	public void driveSidesPWM(double d, double e) {
 		
-		Left_1.set(d);
-		Right_1.set(-e);
+		Left_1.set(d * .5);
+		Right_1.set(-e * .5);
 		
 		//RobotLogger.toast(d + " " + e);
 	}

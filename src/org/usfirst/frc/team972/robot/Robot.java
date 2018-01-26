@@ -2,11 +2,13 @@ package org.usfirst.frc.team972.robot;
 
 import org.usfirst.frc.team972.robot.executor.IntakeSystemTask;
 import org.usfirst.frc.team972.robot.executor.TaskExecutor;
+import org.usfirst.frc.team972.robot.executor.TeleopArcadeDriveTask;
 import org.usfirst.frc.team972.robot.executor.TeleopTankDriveTask;
 import org.usfirst.frc.team972.robot.executor.TrajectoryExecutionTask;
 import org.usfirst.frc.team972.robot.executor.auto.AutoDriveSimpleTime;
 import org.usfirst.frc.team972.robot.executor.auto.AutoDriveVelocityProfileTask;
 import org.usfirst.frc.team972.robot.executor.auto.AutoQuery;
+import org.usfirst.frc.team972.robot.executor.auto.AutoTurnAngleTask;
 import org.usfirst.frc.team972.robot.motionlib.Point;
 import org.usfirst.frc.team972.robot.motionlib.PointsPath;
 import org.usfirst.frc.team972.robot.motionlib.SplineGeneration;
@@ -16,8 +18,11 @@ import org.usfirst.frc.team972.robot.motors.MechanismActuators;
 import org.usfirst.frc.team972.robot.ui.Sensors;
 import org.usfirst.frc.team972.robot.ui.UserInputGamepad;
 
+import com.kauailabs.navx.frc.AHRS;
+
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -31,7 +36,8 @@ public class Robot extends IterativeRobot {
 	MainDriveTrain driveTrain = new MainDriveTrain();
 	MechanismActuators mechanismMotors = new MechanismActuators();
 	Sensors sensors = new Sensors();
-
+	AHRS ahrs;
+	
 	AutoQuery autoQuery;
 
 	UserInputGamepad uig = new UserInputGamepad(0);
@@ -44,6 +50,7 @@ public class Robot extends IterativeRobot {
 
 		autoQuery = new AutoQuery();
 		sensors.SetupIntakeSensors(0, 1);
+		ahrs = (AHRS) sensors.createAHRS();
 		// mechanismMotors.SetupIntakeMotors(1, 3); //This creates two motors for the
 		// left and right motors of our intake mechanism
 		driveTrain.SetupProcedure(1, 2, 3, 4, 5, 6);// fill this out when we have our
@@ -56,7 +63,10 @@ public class Robot extends IterativeRobot {
 
 	public void autonomousInit() {
 		RobotLogger.toast("Auto Init");
-
+		
+		ahrs.reset();
+		ahrs.resetDisplacement();
+		
 		driveTrain.diagnosis();
 
 		realStartTime = Timer.getFPGATimestamp();
@@ -67,11 +77,14 @@ public class Robot extends IterativeRobot {
 		// taskExecutor.addTask(new AutoDriveSimpleTime(4, 2, 0, driveTrain));
 		// taskExecutor.addTask(new AutoDriveSimpleTime(6, 1, 1.0, driveTrain));
 
+		/*
 		PointsPath pointsPath = new PointsPath();
 		pointsPath.addPoint(new Point(0, 0, 0));
 		pointsPath.addPoint(new Point(5, 0, 0));
 		pointsPath.addPoint(new Point(10, 5, 0));
 
+		*/
+		
 		RobotLogger.toast("Begin Trajectory Generation");
 		Trajectory splineTrajectory = new Trajectory(0);
 		// splineTrajectory = SplineGeneration.generateSpline(1, 0.5, pointsPath,
@@ -86,14 +99,21 @@ public class Robot extends IterativeRobot {
 
 		RobotLogger.toast("Trajectory Generation Finished");
 
-		TrajectoryExecutionTask follower = new TrajectoryExecutionTask(0, driveTrain, sensors);
+		TrajectoryExecutionTask follower = new TrajectoryExecutionTask(0, driveTrain, sensors, ahrs);
 
 		taskExecutor.addTask(new AutoDriveVelocityProfileTask(0,
-				SplineGeneration.generateWheelTrajectories(splineTrajectory, 0.7874), sensors, follower));
+				SplineGeneration.generateWheelTrajectories(splineTrajectory, 0.7874), sensors, follower, splineTrajectory));
 		taskExecutor.addTask(follower);
-
+		
+		
+		//taskExecutor.addTask(new AutoTurnAngleTask(1, 90, 1000, driveTrain, ahrs));
+		//taskExecutor.addTask(new AutoTurnAngleTask(1, 180, 1000, driveTrain, ahrs));
+		//taskExecutor.addTask(new AutoTurnAngleTask(1, 270, 1000, driveTrain, ahrs));
+		//taskExecutor.addTask(new AutoTurnAngleTask(1, 360, 1000, driveTrain, ahrs));
+		
 		taskExecutor.autonomousStart();
 
+		//TODO: spawn new thread to execute the realtime loop in
 		autoRealTimeControlLoop();
 	}
 
@@ -120,7 +140,10 @@ public class Robot extends IterativeRobot {
 		RobotLogger.toast("Teleop Init");
 		driveTrain.diagnosis();
 
-		taskExecutor.addTask(new TeleopTankDriveTask(0, uig, driveTrain));
+		ahrs.reset();
+		ahrs.resetDisplacement();
+		
+		taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs));
 		// taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
 		taskExecutor.teleopStart();
 
