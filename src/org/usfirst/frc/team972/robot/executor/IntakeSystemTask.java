@@ -12,6 +12,7 @@ public class IntakeSystemTask extends Task{
 	MechanismActuators mechanismMotors;
 	UserInputGamepad uig;
 	Sensors sensors;
+	
 	double intakeMotorPower = 0.5;
 	boolean activateIntakeMotors;
 	boolean reverseIntakeMotors;
