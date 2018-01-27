@@ -4,6 +4,8 @@ import org.usfirst.frc.team972.robot.executor.IntakeSystemTask;
 import org.usfirst.frc.team972.robot.executor.TaskExecutor;
 import org.usfirst.frc.team972.robot.executor.TeleopTankDriveTask;
 import org.usfirst.frc.team972.robot.executor.TrajectoryExecutionTask;
+import org.usfirst.frc.team972.robot.executor.WinchActions;
+import org.usfirst.frc.team972.robot.executor.WinchClimberSystem;
 import org.usfirst.frc.team972.robot.executor.auto.AutoDriveSimpleTime;
 import org.usfirst.frc.team972.robot.executor.auto.AutoDriveVelocityProfileTask;
 import org.usfirst.frc.team972.robot.executor.auto.AutoQuery;
@@ -26,10 +28,11 @@ public class Robot extends IterativeRobot {
 
 	public static final double REAL_TIME_LOOP_HZ = 200;
 	public static final double MOTION_DT = 50;
-
+	
 	TaskExecutor taskExecutor = new TaskExecutor();
 	MainDriveTrain driveTrain = new MainDriveTrain();
 	MechanismActuators mechanismMotors = new MechanismActuators();
+	WinchActions WinchMovement = new WinchActions();
 	Sensors sensors = new Sensors();
 
 	AutoQuery autoQuery;
@@ -41,13 +44,13 @@ public class Robot extends IterativeRobot {
 
 	public void robotInit() {
 		RobotLogger.toast("Robot Init");
-
-		autoQuery = new AutoQuery();
-		sensors.SetupIntakeSensors(0, 1);
-		// mechanismMotors.SetupIntakeMotors(1, 3); //This creates two motors for the
+		
+		//autoQuery = new AutoQuery();
+		//sensors.SetupIntakeSensors(0, 1);
+		//mechanismMotors.SetupIntakeMotors(1, 3); //This creates two motors for the
 		// left and right motors of our intake mechanism
-		driveTrain.SetupProcedure(1, 2, 3, 4, 5, 6);// fill this out when we have our
-		// driveTrain.SetupShift(0, 1);
+		driveTrain.SetupProcedure(0,0,0,0,0,0);// fill this out when we have our
+		 driveTrain.SetupShift(0, 1);
 		driveTrain.setTalonsPWM_follow();
 		driveTrain.setTalonsBrake();
 		// cantalons left-right
@@ -119,8 +122,11 @@ public class Robot extends IterativeRobot {
 	public void teleopInit() {
 		RobotLogger.toast("Teleop Init");
 		driveTrain.diagnosis();
-
+		
 		taskExecutor.addTask(new TeleopTankDriveTask(0, uig, driveTrain));
+		
+		taskExecutor.addTask(new WinchClimberSystem(0, uig, 7));
+		
 		// taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
 		taskExecutor.teleopStart();
 
