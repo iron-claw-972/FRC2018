@@ -5,6 +5,7 @@ import org.usfirst.frc.team972.robot.executor.TaskExecutor;
 import org.usfirst.frc.team972.robot.executor.TeleopArcadeDriveTask;
 import org.usfirst.frc.team972.robot.executor.TeleopTankDriveTask;
 import org.usfirst.frc.team972.robot.executor.TrajectoryExecutionTask;
+import org.usfirst.frc.team972.robot.executor.auto.AutoDrivePositionAngle;
 import org.usfirst.frc.team972.robot.executor.auto.AutoDriveSimpleTime;
 import org.usfirst.frc.team972.robot.executor.auto.AutoDriveVelocityProfileTask;
 import org.usfirst.frc.team972.robot.executor.auto.AutoQuery;
@@ -47,9 +48,11 @@ public class Robot extends IterativeRobot {
 
 	public void robotInit() {
 		RobotLogger.toast("Robot Init");
-
+		
+		sensors.SetupEncoderDriveTrain(2, 3, 0, 1);
+		
 		autoQuery = new AutoQuery();
-		sensors.SetupIntakeSensors(0, 1);
+		//sensors.SetupIntakeSensors(0, 1);
 		ahrs = (AHRS) sensors.createAHRS();
 		// mechanismMotors.SetupIntakeMotors(1, 3); //This creates two motors for the
 		// left and right motors of our intake mechanism
@@ -63,7 +66,7 @@ public class Robot extends IterativeRobot {
 
 	public void autonomousInit() {
 		RobotLogger.toast("Auto Init");
-		
+		sensors.resetDriveEncoders();
 		ahrs.reset();
 		ahrs.resetDisplacement();
 		
@@ -85,11 +88,10 @@ public class Robot extends IterativeRobot {
 
 		*/
 		
+		
 		RobotLogger.toast("Begin Trajectory Generation");
 		Trajectory splineTrajectory = new Trajectory(0);
-		// splineTrajectory = SplineGeneration.generateSpline(1, 0.5, pointsPath,
-		// (1000/MOTION_DT/1000));
-
+		
 		try {
 			// FileInput.serializeSplineTraj(splineTrajectory, "test_route_1");
 			splineTrajectory = FileInput.deserializeSplineTraj("test_route_1");
@@ -102,9 +104,11 @@ public class Robot extends IterativeRobot {
 		TrajectoryExecutionTask follower = new TrajectoryExecutionTask(0, driveTrain, sensors, ahrs);
 
 		taskExecutor.addTask(new AutoDriveVelocityProfileTask(0,
-				SplineGeneration.generateWheelTrajectories(splineTrajectory, 0.7874), sensors, follower, splineTrajectory));
+				SplineGeneration.generateWheelTrajectories(splineTrajectory, 0.6096), sensors, follower, splineTrajectory));
 		taskExecutor.addTask(follower);
 		
+		
+		//taskExecutor.addTask(new AutoDrivePositionAngle(0, 5, 0, driveTrain, 30, sensors, ahrs));
 		
 		//taskExecutor.addTask(new AutoTurnAngleTask(1, 90, 1000, driveTrain, ahrs));
 		//taskExecutor.addTask(new AutoTurnAngleTask(1, 180, 1000, driveTrain, ahrs));
@@ -150,6 +154,11 @@ public class Robot extends IterativeRobot {
 		// EasyTeleop.teleopInit();
 	}
 
+	public void disabledPeriodic() {
+		taskExecutor.stop();
+		driveTrain.stop();
+	}
+	
 	public void teleopPeriodic() {
 		double current_time = Timer.getFPGATimestamp() - realStartTime;
 

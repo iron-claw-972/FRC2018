@@ -11,7 +11,9 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 public class MainDriveTrain {
 	
 	final int ENCODER_PULSES_PER_REV = 2 * 1024;
-	final int WHEEL_DIAMETER_INCHES = 6;
+	final int WHEEL_DIAMETER_INCHES = 4;
+	final double METER_CONVERSION_INCHES = 0.0254;
+	final double GEARBOX_RATIO = 4.8925;
 	
 	final double MOTOR_VOLTAGE_SATURATION = 10;
 	boolean voltageCompensation = false;
@@ -91,11 +93,11 @@ public class MainDriveTrain {
 	}
 	
 	public double encoderPulseToRadians(int encoderPulse) {
-		return ChezyMath.NORMAL_CIRCUMFERANCE * ((double)encoderPulse/ENCODER_PULSES_PER_REV);
+		return (ChezyMath.NORMAL_CIRCUMFERANCE * ((double)encoderPulse/ENCODER_PULSES_PER_REV)) / GEARBOX_RATIO / 2;
 	}
 	
 	public double radiansToLinearMeters(double radians) {
-		return radians * WHEEL_DIAMETER_INCHES;
+		return radians * WHEEL_DIAMETER_INCHES * (METER_CONVERSION_INCHES);
 	}
 	
 	public double pulseToMetersLinear(int encoderPulse) {
@@ -163,7 +165,16 @@ public class MainDriveTrain {
 		}
 	}
 	
+	public void stop() {
+		Left_1.setNeutralMode(NeutralMode.Coast);
+		Right_1.setNeutralMode(NeutralMode.Coast);
+		Left_1.set(0);
+		Right_1.set(0);
+	}
+	
 	public void driveSidesPWM(double d, double e) {
+		String callerClassName = new Exception().getStackTrace()[1].getClassName();
+		//System.out.println(callerClassName + " " + d + " " + e);
 		
 		Left_1.set(d * .5);
 		Right_1.set(-e * .5);

@@ -9,21 +9,23 @@ import org.usfirst.frc.team972.robot.ui.Sensors;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 //based on 254's traj follower
 
 public class TrajectoryExecutionTask extends Task {
 
-	double kp = 0.0;
-	double ki = 0.0;
-	double kd = 0.0;
+	double kp = 0.35;
+	double ki = 0.05;
+	double kd = 0.01;
 
-	double ka = 0.0;
-	double kv = 1/1.4;
+	double ka = 0.15;
+	double kv = 1 / 1.4;
 
 	double saturatedLimit = 0.5;
 
 	// -----------------------------
-	
+
 	AHRS ahrs;
 	MainDriveTrain driveTrain = new MainDriveTrain();
 	PIDControl headingPid = new PIDControl(0.135, 0.0, 0.8);
@@ -38,7 +40,7 @@ public class TrajectoryExecutionTask extends Task {
 	double desiredRightAcc = 0;
 
 	double desiredAngle = 0;
-	
+
 	double leftError = 0;
 	double rightError = 0;
 	double leftErrorLast = 0;
@@ -65,29 +67,47 @@ public class TrajectoryExecutionTask extends Task {
 		rightError = 0;
 		headingPid.setOutputLimits(-0.15, 0.15);
 		headingPid.setSetpointRange(1);
+
+		desiredLeftVel = 0;
+		desiredRightVel = 0;
+
+		desiredLeftPos = 0;
+		desiredRightPos = 0;
+
+		desiredLeftAcc = 0;
+		desiredRightAcc = 0;
+
+		desiredAngle = 0;
+
+		leftError = 0;
+		rightError = 0;
+		leftErrorLast = 0;
+		rightErrorLast = 0;
+		leftErrorSum = 0;
+		rightErrorSum = 0;
+
+		lastTime = 0;
+
 	}
 
 	private double calculateOutput(double errorPos, double velWant, double accWant, double lastError, double realDt) {
-		double output = kp * errorPos + kd * ((errorPos - lastError) / realDt - velWant)
-				+ (kv * velWant + ka * accWant);
+		double output = (kp * errorPos) + (kd * (errorPos - lastError) / (realDt)) + (kv * velWant)
+				+ (ka * accWant);
 		return output;
 	}
 
 	@Override
 	public void execute(double dt) {
-		double actualAngle = ahrs.getAngle();
-		double steeringCorrect = headingPid.getOutput(actualAngle, desiredAngle);
-				
 		double realDt = Math.max(dt - lastTime, (double) 1000 / Robot.REAL_TIME_LOOP_HZ / 1000);
 
-		double leftRealDist = desiredLeftPos;// driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoder());
-		double rightRealDist = desiredRightPos;// driveTrain.pulseToMetersLinear(sensors.getRightDriveEncoder());
+		double leftRealDist = -driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoder());
+		double rightRealDist = driveTrain.pulseToMetersLinear(sensors.getRightDriveEncoder());
 
 		double leftError = desiredLeftPos - leftRealDist;
 		double rightError = desiredRightPos - rightRealDist;
 
-		double lo = calculateOutput(leftError, desiredLeftVel, desiredLeftAcc, leftErrorLast, realDt) + steeringCorrect;
-		double ro = calculateOutput(rightError, desiredRightVel, desiredRightAcc, rightErrorLast, realDt) - steeringCorrect;
+		double lo = calculateOutput(leftError, desiredLeftVel, desiredLeftAcc, leftErrorLast, realDt);
+		double ro = calculateOutput(rightError, desiredRightVel, desiredRightAcc, rightErrorLast, realDt);
 
 		if (Math.abs(lo) <= saturatedLimit) {
 			leftErrorSum += leftError * realDt;
@@ -99,9 +119,21 @@ public class TrajectoryExecutionTask extends Task {
 		lo += leftErrorSum * ki;
 		ro += rightErrorSum * ki;
 
-		//RobotLogger.toast(desiredLeftVel + " " + desiredRightVel);
+		if (Math.abs(lo) > 1) {
+			lo = Math.signum(lo);
+		}
+		if (Math.abs(ro) > 1) {
+			ro = Math.signum(ro);
+		}
 
-		RobotLogger.toast((actualAngle - desiredAngle) + " output: " + steeringCorrect);
+		
+		SmartDashboard.putNumber("left", leftRealDist);
+		SmartDashboard.putNumber("right", rightRealDist);
+		
+		SmartDashboard.putNumber("wl", desiredLeftPos);
+		SmartDashboard.putNumber("wr", desiredRightPos);
+		
+		SmartDashboard.putNumber("diff", desiredLeftPos - desiredRightPos);
 		
 		driveTrain.driveSidesPWM(lo, ro);
 
@@ -119,7 +151,7 @@ public class TrajectoryExecutionTask extends Task {
 
 		desiredLeftAcc = e;
 		desiredRightAcc = f;
-		
+
 		desiredAngle = _ang;
 	}
 

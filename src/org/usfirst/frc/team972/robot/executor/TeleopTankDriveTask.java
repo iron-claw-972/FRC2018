@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.Joystick;
 public class TeleopTankDriveTask extends Task {
 
 	final int LEFT_DRIVE_AXIS = 1;
-	final int RIGHT_DRIVE_AXIS = 5;
+	final int RIGHT_DRIVE_AXIS = 3;
 	final int SHIFT_BUTTON = 6;
 	final int TURBO_BUTTON = 8;
 	final double DEAD_BAND_THROTTLE = 0.0005;

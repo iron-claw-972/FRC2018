@@ -67,6 +67,8 @@ public class AutoDriveVelocityProfileTask extends Task {
 			double desiredLeftA = leftSeg.acc;
 			double desiredRightA = rightSeg.acc;
 			
+			System.out.println(desiredLeftP - desiredRightP);
+			
 			follower.setpoint(desiredLeftSpeed, desiredRightSpeed, desiredLeftP, desiredRightP, desiredLeftA, desiredRightA, targetAngle);
 		} else {
 			super.finish();

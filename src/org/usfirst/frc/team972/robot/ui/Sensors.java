@@ -48,6 +48,11 @@ public class Sensors {
 	public boolean getBackIntakeSensorValue() {
 		return backIntakeOpticalSensor.get();
 	}
+	
+	public void resetDriveEncoders() {
+		leftSideEncoderDriveTrain.reset();
+		rightSideEncoderDriveTrain.reset();
+	}
 
 	public AHRS createAHRS() {
 		RobotLogger.toast("Preparing to obtain the AHRS");
