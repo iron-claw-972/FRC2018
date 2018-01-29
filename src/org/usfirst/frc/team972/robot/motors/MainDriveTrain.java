@@ -59,6 +59,8 @@ public class MainDriveTrain {
 		talons[1] = Left_2;
 		talons[2] = Left_3;
 		
+		setTalonsFastRate();
+		
 		RobotLogger.toast("DriveTrain Talons Set, Prepare Diagnosis");
 		diagnosis();
 	}
@@ -162,6 +164,13 @@ public class MainDriveTrain {
 		RobotLogger.toast("Setting Drive Talons to Coast");
 		for(int i=0; i<talons.length; i++) {
 			talons[i].setNeutralMode(NeutralMode.Coast);
+		}
+	}
+	
+	public void setTalonsFastRate() {
+		RobotLogger.toast("Setting Drive Talons to Fast Update Rate");
+		for(int i=0; i<talons.length; i++) {
+			talons[i].changeMotionControlFramePeriod(5);
 		}
 	}
 	

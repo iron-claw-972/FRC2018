@@ -60,8 +60,6 @@ public class Robot extends IterativeRobot {
 		// driveTrain.SetupShift(0, 1);
 		driveTrain.setTalonsPWM_follow();
 		driveTrain.setTalonsBrake();
-		// cantalons left-right
-
 	}
 
 	public void autonomousInit() {
@@ -75,23 +73,8 @@ public class Robot extends IterativeRobot {
 		realStartTime = Timer.getFPGATimestamp();
 		autoQuery.getData(); // retrieve the game data
 
-		// taskExecutor.addTask(new AutoDriveSimpleTime(0 , 2, .321, driveTrain));
-		// taskExecutor.addTask(new AutoDriveSimpleTime(2, 1, .254, driveTrain));
-		// taskExecutor.addTask(new AutoDriveSimpleTime(4, 2, 0, driveTrain));
-		// taskExecutor.addTask(new AutoDriveSimpleTime(6, 1, 1.0, driveTrain));
-
-		/*
-		PointsPath pointsPath = new PointsPath();
-		pointsPath.addPoint(new Point(0, 0, 0));
-		pointsPath.addPoint(new Point(5, 0, 0));
-		pointsPath.addPoint(new Point(10, 5, 0));
-
-		*/
-		
-		
 		RobotLogger.toast("Begin Trajectory Generation");
 		Trajectory splineTrajectory = new Trajectory(0);
-		
 		try {
 			// FileInput.serializeSplineTraj(splineTrajectory, "test_route_1");
 			splineTrajectory = FileInput.deserializeSplineTraj("test_route_1");
@@ -107,7 +90,7 @@ public class Robot extends IterativeRobot {
 				SplineGeneration.generateWheelTrajectories(splineTrajectory, 0.6096), sensors, follower, splineTrajectory));
 		taskExecutor.addTask(follower);
 		
-		//taskExecutor.addTask(new AutoTurnAngleTask(0, -90, 10, driveTrain, ahrs));
+		taskExecutor.addTask(new AutoTurnAngleTask(0, 180, 10, driveTrain, ahrs));
 		
 		//taskExecutor.addTask(new AutoDrivePositionAngle(0, 2, -90, driveTrain, 10, sensors, ahrs));
 		

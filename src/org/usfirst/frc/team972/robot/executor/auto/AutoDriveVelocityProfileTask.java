@@ -57,7 +57,6 @@ public class AutoDriveVelocityProfileTask extends Task {
 		int currentSegIndex = getSegmentDt(dt);
 		if(currentSegIndex < numSegs) {
 			double targetAngle = realTraj.getSegment(currentSegIndex).heading;
-			//RobotLogger.toast("DT: " + dt + " Current Seg Index: " + currentSegIndex);
 			
 			Segment leftSeg = wheelTrajectories[0].getSegment(currentSegIndex);
 			Segment rightSeg = wheelTrajectories[1].getSegment(currentSegIndex);
@@ -68,8 +67,6 @@ public class AutoDriveVelocityProfileTask extends Task {
 			double desiredRightP = rightSeg.pos;
 			double desiredLeftA = leftSeg.acc;
 			double desiredRightA = rightSeg.acc;
-			
-			System.out.println(desiredLeftP - desiredRightP);
 			
 			follower.setpoint(desiredLeftSpeed, desiredRightSpeed, desiredLeftP, desiredRightP, desiredLeftA, desiredRightA, targetAngle, false);
 		} else {

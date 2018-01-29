@@ -111,7 +111,11 @@ public class TrajectoryExecutionTask extends Task {
 	
 			double lo = calculateOutput(leftError, desiredLeftVel, desiredLeftAcc, leftErrorLast, realDt);
 			double ro = calculateOutput(rightError, desiredRightVel, desiredRightAcc, rightErrorLast, realDt);
+			
+			double currentAngle = -ahrs.getAngle(); //Invert Angle
 	
+			RobotLogger.toast(desiredAngle - currentAngle + "");
+			
 			if (Math.abs(lo) <= saturatedLimit) {
 				leftErrorSum += leftError * realDt;
 			}
@@ -129,17 +133,6 @@ public class TrajectoryExecutionTask extends Task {
 				ro = Math.signum(ro);
 			}
 	
-			
-			SmartDashboard.putNumber("left", leftRealDist);
-			SmartDashboard.putNumber("right", rightRealDist);
-			
-			SmartDashboard.putNumber("wl", desiredLeftPos);
-			SmartDashboard.putNumber("wr", desiredRightPos);
-			
-			SmartDashboard.putNumber("diff", desiredLeftPos - desiredRightPos);
-			
-			System.out.println(lo + " " + ro);
-			
 			driveTrain.driveSidesPWM(lo, ro);
 	
 			lastTime = dt;
@@ -162,7 +155,7 @@ public class TrajectoryExecutionTask extends Task {
 		desiredLeftAcc = e;
 		desiredRightAcc = f;
 
-		desiredAngle = _ang;
+		desiredAngle = Math.toDegrees(_ang);
 		finished = _finished;
 	}
 
