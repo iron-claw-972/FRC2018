@@ -5,6 +5,7 @@ public abstract class Task {
 	boolean executed = false;
 	boolean autoRemove = false;
 	boolean allowedRun = false;
+	private boolean blocking = false;
 	
 	boolean finished = false;
 	
@@ -23,7 +24,17 @@ public abstract class Task {
 		finished = true;
 	}
 	
+	public void block() {
+		blocking = true;
+	}
 	
+	public void free() {
+		blocking = false;
+	}
+	
+	public boolean blocking() {
+		return blocking;
+	}
 	
 	public void setExecuted() {
 		executed = true;
