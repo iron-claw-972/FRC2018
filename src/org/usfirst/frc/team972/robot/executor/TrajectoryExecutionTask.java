@@ -2,7 +2,7 @@ package org.usfirst.frc.team972.robot.executor;
 
 import org.usfirst.frc.team972.robot.Robot;
 import org.usfirst.frc.team972.robot.RobotLogger;
-import org.usfirst.frc.team972.robot.motionlib.ChezyMath;
+import org.usfirst.frc.team972.robot.motionlib.CoolMath;
 import org.usfirst.frc.team972.robot.motors.MainDriveTrain;
 import org.usfirst.frc.team972.robot.ui.Sensors;
 

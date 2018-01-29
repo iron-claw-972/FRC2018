@@ -1,7 +1,7 @@
 package org.usfirst.frc.team972.robot.motors;
 
 import org.usfirst.frc.team972.robot.RobotLogger;
-import org.usfirst.frc.team972.robot.motionlib.ChezyMath;
+import org.usfirst.frc.team972.robot.motionlib.CoolMath;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -91,7 +91,7 @@ public class MainDriveTrain {
 	}
 	
 	public double encoderPulseToRadians(int encoderPulse) {
-		return ChezyMath.NORMAL_CIRCUMFERANCE * ((double)encoderPulse/ENCODER_PULSES_PER_REV);
+		return CoolMath.NORMAL_CIRCUMFERANCE * ((double)encoderPulse/ENCODER_PULSES_PER_REV);
 	}
 	
 	public double radiansToLinearMeters(double radians) {

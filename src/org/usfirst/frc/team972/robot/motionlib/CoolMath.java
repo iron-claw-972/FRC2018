@@ -6,7 +6,7 @@ package org.usfirst.frc.team972.robot.motionlib;
  * mathematics
  * created by Team 254 - BCP
  */
-public class ChezyMath {
+public class CoolMath {
   // constants
 
   static final double sq2p1 = 2.414213562373095048802e0;
@@ -176,6 +176,6 @@ public class ChezyMath {
     return angle;
   }
 
-  public ChezyMath() {
+  public CoolMath() {
   }
 }
