@@ -1,8 +1,14 @@
 package org.usfirst.frc.team972.robot.ui;
 
+import org.usfirst.frc.team972.robot.RobotLogger;
+
+import com.kauailabs.navx.frc.AHRS;
+
 import edu.wpi.first.wpilibj.*;
 
 public class Sensors {
+	AHRS ahrs;
+	
 	Encoder leftSideEncoderDriveTrain;
 	Encoder rightSideEncoderDriveTrain;
 	
@@ -41,5 +47,25 @@ public class Sensors {
 	
 	public boolean getBackIntakeSensorValue() {
 		return backIntakeOpticalSensor.get();
+	}
+	
+	public void resetDriveEncoders() {
+		leftSideEncoderDriveTrain.reset();
+		rightSideEncoderDriveTrain.reset();
+	}
+
+	public AHRS createAHRS() {
+		RobotLogger.toast("Preparing to obtain the AHRS");
+		try {
+			ahrs = new AHRS(SPI.Port.kMXP);
+			if (ahrs.isConnected()) {
+				RobotLogger.toast("AHRS Success");
+			} else {
+				RobotLogger.toast("AHRS Not Connected");
+			}
+		} catch(Exception e) {
+			RobotLogger.toast("Failed to obtain the AHRS! " + e.getMessage(), RobotLogger.URGENT);
+		}
+		return ahrs;
 	}
 }
