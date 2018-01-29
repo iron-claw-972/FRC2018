@@ -1,7 +1,7 @@
 package org.usfirst.frc.team972.robot.motors;
 
 import org.usfirst.frc.team972.robot.RobotLogger;
-import org.usfirst.frc.team972.robot.motionlib.ChezyMath;
+import org.usfirst.frc.team972.robot.motionlib.CoolMath;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -93,7 +93,7 @@ public class MainDriveTrain {
 	}
 	
 	public double encoderPulseToRadians(int encoderPulse) {
-		return (ChezyMath.NORMAL_CIRCUMFERANCE * ((double)encoderPulse/ENCODER_PULSES_PER_REV)) / GEARBOX_RATIO / 2;
+		return (CoolMath.NORMAL_CIRCUMFERANCE * ((double)encoderPulse/ENCODER_PULSES_PER_REV)) / GEARBOX_RATIO / 2;
 	}
 	
 	public double radiansToLinearMeters(double radians) {
@@ -165,7 +165,14 @@ public class MainDriveTrain {
 		}
 	}
 	
-	public void stop() {
+	public void stopHard() {
+		//Left_1.setNeutralMode(NeutralMode.Coast);
+		//Right_1.setNeutralMode(NeutralMode.Coast);
+		Left_1.set(0);
+		Right_1.set(0);
+	}
+	
+	public void stopCoast() {
 		Left_1.setNeutralMode(NeutralMode.Coast);
 		Right_1.setNeutralMode(NeutralMode.Coast);
 		Left_1.set(0);

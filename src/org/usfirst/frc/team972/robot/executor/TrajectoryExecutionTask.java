@@ -2,7 +2,7 @@ package org.usfirst.frc.team972.robot.executor;
 
 import org.usfirst.frc.team972.robot.Robot;
 import org.usfirst.frc.team972.robot.RobotLogger;
-import org.usfirst.frc.team972.robot.motionlib.ChezyMath;
+import org.usfirst.frc.team972.robot.motionlib.CoolMath;
 import org.usfirst.frc.team972.robot.motionlib.PIDControl;
 import org.usfirst.frc.team972.robot.motors.MainDriveTrain;
 import org.usfirst.frc.team972.robot.ui.Sensors;
@@ -16,10 +16,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class TrajectoryExecutionTask extends Task {
 
 	double kp = 0.35;
-	double ki = 0.05;
+	double ki = 0.005;
 	double kd = 0.01;
 
-	double ka = 0.15;
+	double ka = 0.125;
 	double kv = 1 / 1.4;
 
 	double saturatedLimit = 0.5;
@@ -48,6 +48,8 @@ public class TrajectoryExecutionTask extends Task {
 	double leftErrorSum = 0;
 	double rightErrorSum = 0;
 
+	boolean finished = false;
+	
 	Sensors sensors;
 
 	double lastTime = 0;
@@ -87,7 +89,7 @@ public class TrajectoryExecutionTask extends Task {
 		rightErrorSum = 0;
 
 		lastTime = 0;
-
+		super.block();
 	}
 
 	private double calculateOutput(double errorPos, double velWant, double accWant, double lastError, double realDt) {
@@ -98,51 +100,59 @@ public class TrajectoryExecutionTask extends Task {
 
 	@Override
 	public void execute(double dt) {
-		double realDt = Math.max(dt - lastTime, (double) 1000 / Robot.REAL_TIME_LOOP_HZ / 1000);
-
-		double leftRealDist = -driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoder());
-		double rightRealDist = driveTrain.pulseToMetersLinear(sensors.getRightDriveEncoder());
-
-		double leftError = desiredLeftPos - leftRealDist;
-		double rightError = desiredRightPos - rightRealDist;
-
-		double lo = calculateOutput(leftError, desiredLeftVel, desiredLeftAcc, leftErrorLast, realDt);
-		double ro = calculateOutput(rightError, desiredRightVel, desiredRightAcc, rightErrorLast, realDt);
-
-		if (Math.abs(lo) <= saturatedLimit) {
-			leftErrorSum += leftError * realDt;
+		if(finished == false ) {
+			double realDt = Math.max(dt - lastTime, (double) 1000 / Robot.REAL_TIME_LOOP_HZ / 1000);
+	
+			double leftRealDist = -driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoder());
+			double rightRealDist = driveTrain.pulseToMetersLinear(sensors.getRightDriveEncoder());
+	
+			double leftError = desiredLeftPos - leftRealDist;
+			double rightError = desiredRightPos - rightRealDist;
+	
+			double lo = calculateOutput(leftError, desiredLeftVel, desiredLeftAcc, leftErrorLast, realDt);
+			double ro = calculateOutput(rightError, desiredRightVel, desiredRightAcc, rightErrorLast, realDt);
+	
+			if (Math.abs(lo) <= saturatedLimit) {
+				leftErrorSum += leftError * realDt;
+			}
+			if (Math.abs(ro) <= saturatedLimit) {
+				rightErrorSum += rightError * realDt;
+			}
+	
+			lo += leftErrorSum * ki;
+			ro += rightErrorSum * ki;
+	
+			if (Math.abs(lo) > 1) {
+				lo = Math.signum(lo);
+			}
+			if (Math.abs(ro) > 1) {
+				ro = Math.signum(ro);
+			}
+	
+			
+			SmartDashboard.putNumber("left", leftRealDist);
+			SmartDashboard.putNumber("right", rightRealDist);
+			
+			SmartDashboard.putNumber("wl", desiredLeftPos);
+			SmartDashboard.putNumber("wr", desiredRightPos);
+			
+			SmartDashboard.putNumber("diff", desiredLeftPos - desiredRightPos);
+			
+			System.out.println(lo + " " + ro);
+			
+			driveTrain.driveSidesPWM(lo, ro);
+	
+			lastTime = dt;
+			leftErrorLast = leftError;
+			rightErrorLast = rightError;
+		} else {
+			driveTrain.stopHard();
+			super.free();
+			super.destroy();
 		}
-		if (Math.abs(ro) <= saturatedLimit) {
-			rightErrorSum += rightError * realDt;
-		}
-
-		lo += leftErrorSum * ki;
-		ro += rightErrorSum * ki;
-
-		if (Math.abs(lo) > 1) {
-			lo = Math.signum(lo);
-		}
-		if (Math.abs(ro) > 1) {
-			ro = Math.signum(ro);
-		}
-
-		
-		SmartDashboard.putNumber("left", leftRealDist);
-		SmartDashboard.putNumber("right", rightRealDist);
-		
-		SmartDashboard.putNumber("wl", desiredLeftPos);
-		SmartDashboard.putNumber("wr", desiredRightPos);
-		
-		SmartDashboard.putNumber("diff", desiredLeftPos - desiredRightPos);
-		
-		driveTrain.driveSidesPWM(lo, ro);
-
-		lastTime = dt;
-		leftErrorLast = leftError;
-		rightErrorLast = rightError;
 	}
 
-	public void setpoint(double a, double b, double c, double d, double e, double f, double _ang) {
+	public void setpoint(double a, double b, double c, double d, double e, double f, double _ang, boolean _finished) {
 		desiredLeftVel = a;
 		desiredRightVel = b;
 
@@ -153,6 +163,7 @@ public class TrajectoryExecutionTask extends Task {
 		desiredRightAcc = f;
 
 		desiredAngle = _ang;
+		finished = _finished;
 	}
 
 }

@@ -107,7 +107,11 @@ public class Robot extends IterativeRobot {
 				SplineGeneration.generateWheelTrajectories(splineTrajectory, 0.6096), sensors, follower, splineTrajectory));
 		taskExecutor.addTask(follower);
 		
+		//taskExecutor.addTask(new AutoTurnAngleTask(0, -90, 10, driveTrain, ahrs));
 		
+		//taskExecutor.addTask(new AutoDrivePositionAngle(0, 2, -90, driveTrain, 10, sensors, ahrs));
+		
+
 		//taskExecutor.addTask(new AutoDrivePositionAngle(0, 5, 0, driveTrain, 30, sensors, ahrs));
 		
 		//taskExecutor.addTask(new AutoTurnAngleTask(1, 90, 1000, driveTrain, ahrs));
@@ -156,7 +160,7 @@ public class Robot extends IterativeRobot {
 
 	public void disabledPeriodic() {
 		taskExecutor.stop();
-		driveTrain.stop();
+		driveTrain.stopCoast();
 	}
 	
 	public void teleopPeriodic() {

@@ -24,6 +24,7 @@ public class AutoDriveVelocityProfileTask extends Task {
 	double integratedVelocity = 0;
 	
 	double initTime = 0;
+	double finalPos = 0;
 	
 	public AutoDriveVelocityProfileTask(double _executionTime, Trajectory[] _traj, Sensors _sensors, TrajectoryExecutionTask _follower, Trajectory _realTraj) {
 		super(_executionTime);
@@ -36,6 +37,7 @@ public class AutoDriveVelocityProfileTask extends Task {
 	public void init(double dt) {
 		// TODO Auto-generated method stub
 		initTime = dt;
+		finalPos = (wheelTrajectories[0].getSegment(wheelTrajectories[0].getNumSegments()).pos + wheelTrajectories[0].getSegment(wheelTrajectories[0].getNumSegments()).pos) / (double) 2;
 	}
 	
 	public int getSegmentDt(double currentTime) {
@@ -69,8 +71,9 @@ public class AutoDriveVelocityProfileTask extends Task {
 			
 			System.out.println(desiredLeftP - desiredRightP);
 			
-			follower.setpoint(desiredLeftSpeed, desiredRightSpeed, desiredLeftP, desiredRightP, desiredLeftA, desiredRightA, targetAngle);
+			follower.setpoint(desiredLeftSpeed, desiredRightSpeed, desiredLeftP, desiredRightP, desiredLeftA, desiredRightA, targetAngle, false);
 		} else {
+			follower.setpoint(0, 0, 0, 0, 0, 0, 0, true); //we done
 			super.finish();
 		}
 	}
