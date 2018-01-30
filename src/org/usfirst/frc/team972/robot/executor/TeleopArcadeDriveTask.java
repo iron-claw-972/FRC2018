@@ -45,7 +45,7 @@ public class TeleopArcadeDriveTask extends Task {
 	
 	//this is teleopPeriodic
 	public void execute(double dt) {
-		double throttle = uig.getStickA().getRawAxis(LEFT_DRIVE_AXIS);
+		double throttle = -uig.getStickA().getRawAxis(LEFT_DRIVE_AXIS);
 		double steer_set = uig.getStickA().getRawAxis(RIGHT_DRIVE_AXIS);
 
 		double turn_in_place = 1;
