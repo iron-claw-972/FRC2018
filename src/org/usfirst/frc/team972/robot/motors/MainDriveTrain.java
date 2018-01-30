@@ -11,7 +11,9 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 public class MainDriveTrain {
 	
 	final int ENCODER_PULSES_PER_REV = 2 * 1024;
-	final int WHEEL_DIAMETER_INCHES = 6;
+	final int WHEEL_DIAMETER_INCHES = 4;
+	final double METER_CONVERSION_INCHES = 0.0254;
+	final double GEARBOX_RATIO = 4.8925;
 	
 	final double MOTOR_VOLTAGE_SATURATION = 10;
 	boolean voltageCompensation = false;
@@ -57,6 +59,8 @@ public class MainDriveTrain {
 		talons[1] = Left_2;
 		talons[2] = Left_3;
 		
+		setTalonsFastRate();
+		
 		RobotLogger.toast("DriveTrain Talons Set, Prepare Diagnosis");
 		diagnosis();
 	}
@@ -91,11 +95,11 @@ public class MainDriveTrain {
 	}
 	
 	public double encoderPulseToRadians(int encoderPulse) {
-		return CoolMath.NORMAL_CIRCUMFERANCE * ((double)encoderPulse/ENCODER_PULSES_PER_REV);
+		return CoolMath.NORMAL_CIRCUMFERANCE * ((double)encoderPulse/ENCODER_PULSES_PER_REV); // TODO Make sure this is correct
 	}
 	
 	public double radiansToLinearMeters(double radians) {
-		return radians * WHEEL_DIAMETER_INCHES;
+		return radians * WHEEL_DIAMETER_INCHES * (METER_CONVERSION_INCHES);
 	}
 	
 	public double pulseToMetersLinear(int encoderPulse) {
@@ -163,10 +167,33 @@ public class MainDriveTrain {
 		}
 	}
 	
+	public void setTalonsFastRate() {
+		RobotLogger.toast("Setting Drive Talons to Fast Update Rate");
+		for(int i=0; i<talons.length; i++) {
+			talons[i].changeMotionControlFramePeriod(5);
+		}
+	}
+	
+	public void stopHard() {
+		//Left_1.setNeutralMode(NeutralMode.Coast);
+		//Right_1.setNeutralMode(NeutralMode.Coast);
+		Left_1.set(0);
+		Right_1.set(0);
+	}
+	
+	public void stopCoast() {
+		Left_1.setNeutralMode(NeutralMode.Coast);
+		Right_1.setNeutralMode(NeutralMode.Coast);
+		Left_1.set(0);
+		Right_1.set(0);
+	}
+	
 	public void driveSidesPWM(double d, double e) {
+		String callerClassName = new Exception().getStackTrace()[1].getClassName();
+		//System.out.println(callerClassName + " " + d + " " + e);
 		
-		Left_1.set(d);
-		Right_1.set(-e);
+		Left_1.set(d * .5);
+		Right_1.set(-e * .5);
 		
 		//RobotLogger.toast(d + " " + e);
 	}
