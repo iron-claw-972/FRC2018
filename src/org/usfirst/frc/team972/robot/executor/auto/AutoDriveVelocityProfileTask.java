@@ -2,7 +2,6 @@ package org.usfirst.frc.team972.robot.executor.auto;
 
 import org.usfirst.frc.team972.robot.RobotLogger;
 import org.usfirst.frc.team972.robot.executor.Task;
-import org.usfirst.frc.team972.robot.executor.TrajectoryExecutionTask;
 import org.usfirst.frc.team972.robot.motionlib.PIDControl;
 import org.usfirst.frc.team972.robot.motionlib.Trajectory;
 import org.usfirst.frc.team972.robot.motionlib.Trajectory.Segment;
@@ -71,7 +70,7 @@ public class AutoDriveVelocityProfileTask extends Task {
 			follower.setpoint(desiredLeftSpeed, desiredRightSpeed, desiredLeftP, desiredRightP, desiredLeftA, desiredRightA, targetAngle, false);
 		} else {
 			follower.setpoint(0, 0, 0, 0, 0, 0, 0, true); //we done
-			super.finish();
+			super.destroy();
 		}
 	}
 

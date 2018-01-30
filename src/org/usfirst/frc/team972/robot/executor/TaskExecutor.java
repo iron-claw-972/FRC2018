@@ -79,14 +79,14 @@ public class TaskExecutor {
 			Task task = taskList[i];
 			if(task != null) {
 				if((task.executionTime < timestamp) && task.allowedRun) {
-					double taskStartTime = task.executionTime;
 					boolean blocking = false;
 					
 					if(task.executed == false) {
-						task.init(timestamp - taskStartTime);
+						task.realExecutionTime = timestamp;
+						task.init(timestamp - task.realExecutionTime);
 					}
 	
-					task.execute(timestamp - taskStartTime);
+					task.execute(timestamp - task.realExecutionTime);
 					
 					task.setExecuted();
 					blocking = task.blocking();

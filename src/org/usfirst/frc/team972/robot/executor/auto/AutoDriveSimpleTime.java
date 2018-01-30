@@ -22,7 +22,7 @@ public class AutoDriveSimpleTime extends Task {
 			mdt.driveSidesPWM(motorPower, motorPower);
 		} else {
 			mdt.driveSidesPWM(0, 0);
-			super.finish();
+			super.destroy();
 		}
 	}
 

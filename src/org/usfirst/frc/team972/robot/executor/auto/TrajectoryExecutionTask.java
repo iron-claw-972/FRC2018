@@ -1,7 +1,8 @@
-package org.usfirst.frc.team972.robot.executor;
+package org.usfirst.frc.team972.robot.executor.auto;
 
 import org.usfirst.frc.team972.robot.Robot;
 import org.usfirst.frc.team972.robot.RobotLogger;
+import org.usfirst.frc.team972.robot.executor.Task;
 import org.usfirst.frc.team972.robot.motionlib.CoolMath;
 import org.usfirst.frc.team972.robot.motionlib.PIDControl;
 import org.usfirst.frc.team972.robot.motors.MainDriveTrain;
@@ -22,14 +23,17 @@ public class TrajectoryExecutionTask extends Task {
 	double ka = 0.125;
 	double kv = 1 / 1.4;
 
+	double lastAngleDesired = 0;
 	double saturatedLimit = 0.5;
 
 	// -----------------------------
 
 	AHRS ahrs;
 	MainDriveTrain driveTrain = new MainDriveTrain();
-	PIDControl headingPid = new PIDControl(0.135, 0.0, 0.8);
+	PIDControl headingPid = new PIDControl(0.1, 0.0, 0.25);
 
+	double angleDifferenceLimitHeading = 1;
+	
 	double desiredLeftVel = 0;
 	double desiredRightVel = 0;
 
@@ -67,7 +71,9 @@ public class TrajectoryExecutionTask extends Task {
 		lastTime = dt;
 		leftError = 0;
 		rightError = 0;
-		headingPid.setOutputLimits(-0.15, 0.15);
+		
+		headingPid.setOutputLimits(-0.1, 0.1);
+		headingPid.setOutputFilter(0.05);
 		headingPid.setSetpointRange(1);
 
 		desiredLeftVel = 0;
@@ -89,6 +95,7 @@ public class TrajectoryExecutionTask extends Task {
 		rightErrorSum = 0;
 
 		lastTime = 0;
+		lastAngleDesired = 0;
 		super.block();
 	}
 
@@ -111,10 +118,11 @@ public class TrajectoryExecutionTask extends Task {
 	
 			double lo = calculateOutput(leftError, desiredLeftVel, desiredLeftAcc, leftErrorLast, realDt);
 			double ro = calculateOutput(rightError, desiredRightVel, desiredRightAcc, rightErrorLast, realDt);
+				
+			double currentAngle = ahrs.getAngle();
+			double angleCorrectionPower = -headingPid.getOutput(currentAngle, desiredAngle)/2;
 			
-			double currentAngle = -ahrs.getAngle(); //Invert Angle
-	
-			RobotLogger.toast(desiredAngle - currentAngle + "");
+			RobotLogger.toast(currentAngle + " : " + desiredAngle + " > " + angleCorrectionPower);
 			
 			if (Math.abs(lo) <= saturatedLimit) {
 				leftErrorSum += leftError * realDt;
@@ -133,11 +141,17 @@ public class TrajectoryExecutionTask extends Task {
 				ro = Math.signum(ro);
 			}
 	
-			driveTrain.driveSidesPWM(lo, ro);
+			if(Math.abs(desiredAngle - currentAngle) > angleDifferenceLimitHeading) {
+				driveTrain.driveSidesPWM(lo, ro);
+			} else {
+				driveTrain.driveSidesPWM(lo - angleCorrectionPower, ro + angleCorrectionPower);
+			}
+
 	
 			lastTime = dt;
 			leftErrorLast = leftError;
 			rightErrorLast = rightError;
+			lastAngleDesired = desiredAngle;
 		} else {
 			driveTrain.stopHard();
 			super.free();
@@ -155,7 +169,7 @@ public class TrajectoryExecutionTask extends Task {
 		desiredLeftAcc = e;
 		desiredRightAcc = f;
 
-		desiredAngle = Math.toDegrees(_ang);
+		desiredAngle = -(Math.toDegrees(_ang) - 360);
 		finished = _finished;
 	}
 
