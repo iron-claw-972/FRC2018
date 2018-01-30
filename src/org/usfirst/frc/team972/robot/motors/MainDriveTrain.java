@@ -95,7 +95,7 @@ public class MainDriveTrain {
 	}
 	
 	public double encoderPulseToRadians(int encoderPulse) {
-		return (CoolMath.NORMAL_CIRCUMFERANCE * ((double)encoderPulse/ENCODER_PULSES_PER_REV)) / GEARBOX_RATIO / 2;
+		return CoolMath.NORMAL_CIRCUMFERANCE * ((double)encoderPulse/ENCODER_PULSES_PER_REV); // TODO Make sure this is correct
 	}
 	
 	public double radiansToLinearMeters(double radians) {
