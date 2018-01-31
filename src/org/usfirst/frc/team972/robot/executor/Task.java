@@ -2,6 +2,7 @@ package org.usfirst.frc.team972.robot.executor;
 
 public abstract class Task {
 	double executionTime = 0;
+	double realExecutionTime = 0;
 	boolean executed = false;
 	boolean autoRemove = false;
 	boolean allowedRun = false;
@@ -38,10 +39,6 @@ public abstract class Task {
 	
 	public void setExecuted() {
 		executed = true;
-	}
-	
-	public void finish() {
-		finished = true;
 	}
 	
 }

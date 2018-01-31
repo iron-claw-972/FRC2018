@@ -69,7 +69,7 @@ public class AutoDrivePositionAngle extends Task {
 			}
 		} else {
 			mdt.driveSidesPWM(0, 0);
-			super.finish();
+			super.destroy();
 			super.free();
 		}
 	}

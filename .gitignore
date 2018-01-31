@@ -52,5 +52,3 @@ $RECYCLE.BIN/
 *.msp
 *.lnk
 /bin/
-!FRCUserProgram.jar
-
