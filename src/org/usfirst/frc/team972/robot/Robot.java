@@ -60,12 +60,12 @@ public class Robot extends IterativeRobot {
 		// mechanismMotors.SetupIntakeMotors(1, 3); //This creates two motors for the
 		// left and right motors of our intake mechanism
 		
-		driveTrain.SetupProcedure(1, 3, 4, 
-								  10, 11, 12);// fill this out when we have our
+		driveTrain.SetupProcedure(4, 5, 6, 
+								  7, 8, 9);// fill this out when we have our
 		
 		// driveTrain.SetupShift(0, 1);
 		driveTrain.setTalonsPWM_follow();
-		driveTrain.setTalonsBrake();
+		//driveTrain.setTalonsBrake();
 	}
 
 	public void autonomousInit() {
@@ -135,6 +135,7 @@ public class Robot extends IterativeRobot {
 
 	public void teleopInit() {
 		RobotLogger.toast("Teleop Init");
+		driveTrain.setTalonsPWM_follow();
 		driveTrain.diagnosis();
 
 		ahrs.reset();
@@ -149,7 +150,7 @@ public class Robot extends IterativeRobot {
 
 	public void disabledPeriodic() {
 		taskExecutor.stop();
-		driveTrain.stopCoast();
+		//driveTrain.stopCoast();
 	}
 	
 	public void teleopPeriodic() {

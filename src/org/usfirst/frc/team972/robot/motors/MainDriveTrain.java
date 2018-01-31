@@ -120,13 +120,24 @@ public class MainDriveTrain {
 		//switch all talons to followers
 		
 		Right_1.set(ControlMode.PercentOutput, 0);
-		Right_2.set(ControlMode.Follower, Right_1.getDeviceID());
-		Right_3.set(ControlMode.Follower, Right_1.getDeviceID());
+		Right_2.set(ControlMode.PercentOutput, 0);
+		Right_3.set(ControlMode.PercentOutput, 0);
 		
 		Left_1.set(ControlMode.PercentOutput, 0);
-		Left_2.set(ControlMode.Follower, Left_1.getDeviceID());
-		Left_3.set(ControlMode.Follower, Left_1.getDeviceID());
+		Left_2.set(ControlMode.PercentOutput, 0);
+		Left_3.set(ControlMode.PercentOutput, 0);
 		
+		/*
+		Left_1.setNeutralMode(NeutralMode.Brake);
+		Left_2.setNeutralMode(NeutralMode.Brake);
+		Left_3.setNeutralMode(NeutralMode.Brake);
+		
+		Right_1.setNeutralMode(NeutralMode.Brake);
+		Right_2.setNeutralMode(NeutralMode.Brake);
+		Right_3.setNeutralMode(NeutralMode.Brake);
+		*/
+		
+		setTalonsBrake();
 		voltageCompensation();
 		
 		RobotLogger.toast("Setting Drive Talons to Follower Mode vBus");
@@ -155,16 +166,24 @@ public class MainDriveTrain {
 	
 	public void setTalonsBrake() {
 		RobotLogger.toast("Setting Drive Talons to Brake");
-		for(int i=0; i<talons.length; i++) {
-			talons[i].setNeutralMode(NeutralMode.Brake);
-		}
+		Left_1.setNeutralMode(NeutralMode.Brake);
+		Left_2.setNeutralMode(NeutralMode.Brake);
+		Left_3.setNeutralMode(NeutralMode.Brake);
+		
+		Right_1.setNeutralMode(NeutralMode.Brake);
+		Right_2.setNeutralMode(NeutralMode.Brake);
+		Right_3.setNeutralMode(NeutralMode.Brake);
 	}
 	
 	public void setTalonsCoast() {
 		RobotLogger.toast("Setting Drive Talons to Coast");
-		for(int i=0; i<talons.length; i++) {
-			talons[i].setNeutralMode(NeutralMode.Coast);
-		}
+		Left_1.setNeutralMode(NeutralMode.Coast);
+		Left_2.setNeutralMode(NeutralMode.Coast);
+		Left_3.setNeutralMode(NeutralMode.Coast);
+		
+		Right_1.setNeutralMode(NeutralMode.Coast);
+		Right_2.setNeutralMode(NeutralMode.Coast);
+		Right_3.setNeutralMode(NeutralMode.Coast);
 	}
 	
 	public void setTalonsFastRate() {
@@ -179,6 +198,10 @@ public class MainDriveTrain {
 		//Right_1.setNeutralMode(NeutralMode.Coast);
 		Left_1.set(0);
 		Right_1.set(0);
+		Left_2.set(0);
+		Right_2.set(0);
+		Left_3.set(0);
+		Right_3.set(0);
 	}
 	
 	public void stopCoast() {
@@ -186,14 +209,29 @@ public class MainDriveTrain {
 		Right_1.setNeutralMode(NeutralMode.Coast);
 		Left_1.set(0);
 		Right_1.set(0);
+		Left_2.setNeutralMode(NeutralMode.Coast);
+		Right_2.setNeutralMode(NeutralMode.Coast);
+		Left_2.set(0);
+		Right_2.set(0);
+		Left_3.setNeutralMode(NeutralMode.Coast);
+		Right_3.setNeutralMode(NeutralMode.Coast);
+		Left_3.set(0);
+		Right_3.set(0);
 	}
 	
 	public void driveSidesPWM(double d, double e) {
-		String callerClassName = new Exception().getStackTrace()[1].getClassName();
-		//System.out.println(callerClassName + " " + d + " " + e);
+		d = d * .6;
+		e = e * .6;
+		/*
+		 * our drive_train gears are weird... top motor is INVERTED.
+		 */
+		Left_1.set(-d);
+		Left_2.set(d);
+		Left_3.set(d);
 		
-		Left_1.set(d * .5);
-		Right_1.set(-e * .5);
+		Right_1.set(e);
+		Right_2.set(-e);
+		Right_3.set(-e);
 		
 		//RobotLogger.toast(d + " " + e);
 	}

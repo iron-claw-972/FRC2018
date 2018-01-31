@@ -12,8 +12,8 @@ public class TeleopTankDriveTask extends Task {
 
 	final int LEFT_DRIVE_AXIS = 1;
 	final int RIGHT_DRIVE_AXIS = 5;
-	final int SHIFT_BUTTON = 6;
-	final int TURBO_BUTTON = 8;
+	final int SHIFT_BUTTON = 5;
+	final int TURBO_BUTTON = 6;
 	final double DEAD_BAND_THROTTLE = 0.0005;
 
 	MainDriveTrain driveTrain;
@@ -21,6 +21,16 @@ public class TeleopTankDriveTask extends Task {
 	
 	AHRS ahrs;
 	int driveGearMode = 0;
+	
+	int currentSpeedMode = 0;
+	
+	double speedModes[] = {0.3, 0.5, 0.75, 1};
+	double speedModeMultiplier = speedModes[0];
+	
+	final int SPEED_MODE_0 = 3; //these are button id's
+	final int SPEED_MODE_1 = 1;
+	final int SPEED_MODE_2 = 2;
+	final int SPEED_MODE_3 = 4;
 	
 	double leftDrive = 0;
 	double rightDrive = 0;
@@ -41,8 +51,20 @@ public class TeleopTankDriveTask extends Task {
 	
 	//this is teleopPeriodic
 	public void execute(double dt) {
-		double wantLeftDrive = uig.getStickA().getRawAxis(RIGHT_DRIVE_AXIS);
-		double wantRightDrive = uig.getStickA().getRawAxis(LEFT_DRIVE_AXIS);
+		
+		if(uig.getStickA().getRawButton(SPEED_MODE_0)) {
+			currentSpeedMode = 0;
+		} else if(uig.getStickA().getRawButton(SPEED_MODE_1)) {
+			currentSpeedMode = 1;
+		} else if(uig.getStickA().getRawButton(SPEED_MODE_2)) {
+			currentSpeedMode = 2;
+		} else if(uig.getStickA().getRawButton(SPEED_MODE_3)) {
+			currentSpeedMode = 3;
+		}
+		speedModeMultiplier = speedModes[currentSpeedMode];
+		
+		double wantLeftDrive = -uig.getStickA().getRawAxis(LEFT_DRIVE_AXIS);
+		double wantRightDrive = -uig.getStickA().getRawAxis(RIGHT_DRIVE_AXIS);
 
 		wantLeftDrive = handleDeadband(wantLeftDrive, DEAD_BAND_THROTTLE);
 		wantRightDrive = handleDeadband(wantRightDrive, DEAD_BAND_THROTTLE);
@@ -72,7 +94,7 @@ public class TeleopTankDriveTask extends Task {
 		leftDrive = handleDeadband(leftDrive, DEAD_BAND_THROTTLE);
 		rightDrive = handleDeadband(rightDrive, DEAD_BAND_THROTTLE);
 
-		RobotLogger.toast(ahrs.getVelocityX() + "");
+		RobotLogger.toast(leftDrive + " " + rightDrive);
 		driveTrain.driveSidesPWM(leftDrive,rightDrive);
 	}
 

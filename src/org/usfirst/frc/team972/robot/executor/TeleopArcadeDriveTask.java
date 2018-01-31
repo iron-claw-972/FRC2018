@@ -16,6 +16,15 @@ public class TeleopArcadeDriveTask extends Task {
 	final int TURBO_BUTTON = 8;
 	final double DEAD_BAND_THROTTLE = 0.0005;
 
+	int currentSpeedMode = 0;
+	
+	double speedModes[] = {0.3, 0.5, 0.75, 1};
+	
+	final int SPEED_MODE_0 = 3; //these are button id's
+	final int SPEED_MODE_1 = 1;
+	final int SPEED_MODE_2 = 2;
+	final int SPEED_MODE_3 = 4;
+	
 	MainDriveTrain driveTrain;
 	UserInputGamepad uig;
 	
@@ -45,6 +54,17 @@ public class TeleopArcadeDriveTask extends Task {
 	
 	//this is teleopPeriodic
 	public void execute(double dt) {
+		
+		if(uig.getStickA().getRawButton(SPEED_MODE_0)) {
+			currentSpeedMode = 0;
+		} else if(uig.getStickA().getRawButton(SPEED_MODE_1)) {
+			currentSpeedMode = 1;
+		} else if(uig.getStickA().getRawButton(SPEED_MODE_2)) {
+			currentSpeedMode = 2;
+		} else if(uig.getStickA().getRawButton(SPEED_MODE_3)) {
+			currentSpeedMode = 3;
+		}
+		
 		double throttle = -uig.getStickA().getRawAxis(LEFT_DRIVE_AXIS);
 		double steer_set = uig.getStickA().getRawAxis(RIGHT_DRIVE_AXIS);
 
@@ -130,7 +150,7 @@ public class TeleopArcadeDriveTask extends Task {
 		leftDrive = interpolateValues(left_p, leftDrive);
 		rightDrive = interpolateValues(right_p, rightDrive);
 		
-		System.out.println(leftDrive + " " + rightDrive);
+		System.out.println(leftDrive + " " + rightDrive + " " + currentSpeedMode);
 		
 		driveTrain.driveSidesPWM(leftDrive,rightDrive);
 	}
