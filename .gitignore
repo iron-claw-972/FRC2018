@@ -13,7 +13,6 @@
 *.log
 *.ctxt
 .mtj.tmp/
-*.jar
 *.war
 *.ear
 *.zip
@@ -53,5 +52,3 @@ $RECYCLE.BIN/
 *.msp
 *.lnk
 /bin/
-!FRCUserProgram.jar
-

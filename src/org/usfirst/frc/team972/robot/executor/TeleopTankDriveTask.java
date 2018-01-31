@@ -4,30 +4,34 @@ import org.usfirst.frc.team972.robot.RobotLogger;
 import org.usfirst.frc.team972.robot.motors.MainDriveTrain;
 import org.usfirst.frc.team972.robot.ui.UserInputGamepad;
 
+import com.kauailabs.navx.frc.AHRS;
+
 import edu.wpi.first.wpilibj.Joystick;
 
 public class TeleopTankDriveTask extends Task {
 
 	final int LEFT_DRIVE_AXIS = 1;
-	final int RIGHT_DRIVE_AXIS = 3;
+	final int RIGHT_DRIVE_AXIS = 5;
 	final int SHIFT_BUTTON = 6;
 	final int TURBO_BUTTON = 8;
-	final double DEAD_BAND_THROTTLE = 0.005;
+	final double DEAD_BAND_THROTTLE = 0.0005;
 
 	MainDriveTrain driveTrain;
 	UserInputGamepad uig;
 	
+	AHRS ahrs;
 	int driveGearMode = 0;
 	
 	double leftDrive = 0;
 	double rightDrive = 0;
 	double easingValue = 0.1;
 	
-	public TeleopTankDriveTask(double _executionTime, UserInputGamepad _uig, MainDriveTrain _driveTrain) {
+	public TeleopTankDriveTask(double _executionTime, UserInputGamepad _uig, MainDriveTrain _driveTrain, AHRS _ahrs) {
 		super(_executionTime);
 		super.autoRemove = false;
 		uig = _uig;
 		driveTrain = _driveTrain;
+		ahrs = _ahrs;
 	}
 	
 	private double interpolateValues(double want, double actual) {
@@ -37,8 +41,8 @@ public class TeleopTankDriveTask extends Task {
 	
 	//this is teleopPeriodic
 	public void execute(double dt) {
-		double wantLeftDrive = uig.getStickA().getRawAxis(LEFT_DRIVE_AXIS);
-		double wantRightDrive = uig.getStickA().getRawAxis(RIGHT_DRIVE_AXIS);
+		double wantLeftDrive = uig.getStickA().getRawAxis(RIGHT_DRIVE_AXIS);
+		double wantRightDrive = uig.getStickA().getRawAxis(LEFT_DRIVE_AXIS);
 
 		wantLeftDrive = handleDeadband(wantLeftDrive, DEAD_BAND_THROTTLE);
 		wantRightDrive = handleDeadband(wantRightDrive, DEAD_BAND_THROTTLE);
@@ -68,7 +72,7 @@ public class TeleopTankDriveTask extends Task {
 		leftDrive = handleDeadband(leftDrive, DEAD_BAND_THROTTLE);
 		rightDrive = handleDeadband(rightDrive, DEAD_BAND_THROTTLE);
 
-		RobotLogger.toast(leftDrive + " " + rightDrive);
+		RobotLogger.toast(ahrs.getVelocityX() + "");
 		driveTrain.driveSidesPWM(leftDrive,rightDrive);
 	}
 

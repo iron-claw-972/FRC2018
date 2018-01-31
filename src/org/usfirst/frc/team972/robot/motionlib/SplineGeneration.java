@@ -46,15 +46,15 @@ public class SplineGeneration {
         result.knot_distance_ = x1_hat;
         result.theta_offset_ = Math.atan2(y1 - y0, x1 - x0);
 
-        double theta0_hat = ChezyMath.getDifferenceInAngleRadians(result.theta_offset_, theta0);
-        double theta1_hat = ChezyMath.getDifferenceInAngleRadians(result.theta_offset_, theta1);
+        double theta0_hat = CoolMath.getDifferenceInAngleRadians(result.theta_offset_, theta0);
+        double theta1_hat = CoolMath.getDifferenceInAngleRadians(result.theta_offset_, theta1);
 
         if (almostEqual(Math.abs(theta0_hat), Math.PI / 2)
                 || almostEqual(Math.abs(theta1_hat), Math.PI / 2)) {
             return null;
         }
 
-        if (Math.abs(ChezyMath.getDifferenceInAngleRadians(theta0_hat,
+        if (Math.abs(CoolMath.getDifferenceInAngleRadians(theta0_hat,
                 theta1_hat))
                 >= Math.PI / 2) {
             return null;
@@ -212,7 +212,7 @@ public class SplineGeneration {
     }
 
     public double angleAt(double percentage) {
-        double angle = ChezyMath.boundAngle0to2PiRadians(
+        double angle = CoolMath.boundAngle0to2PiRadians(
                 Math.atan(derivativeAt(percentage)) + theta_offset_);
         return angle;
     }
