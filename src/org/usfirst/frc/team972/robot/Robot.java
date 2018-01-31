@@ -42,10 +42,11 @@ public class Robot extends IterativeRobot {
 	MechanismActuators mechanismMotors = new MechanismActuators();
 	Sensors sensors = new Sensors();
 	AHRS ahrs;
+	Test tester;
 	
 	AutoQuery autoQuery;
 
-	UserInputGamepad uig = new UserInputGamepad(0);
+	UserInputGamepad uig = new UserInputGamepad(0, 1);
 
 	boolean firstTimeTeleop = false;
 	double realStartTime = 0;

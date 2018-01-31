@@ -29,7 +29,7 @@ public class MainDriveTrain {
 	WPI_TalonSRX Left_2;
 	WPI_TalonSRX Left_3;
 	
-	WPI_TalonSRX talons[] = new WPI_TalonSRX[6];
+	public WPI_TalonSRX talons[] = new WPI_TalonSRX[6];
 	
 	public void SetupRight(int f, int m, int b) {
 		Right_1 = new WPI_TalonSRX(f);
