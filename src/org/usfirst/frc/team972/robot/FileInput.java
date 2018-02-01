@@ -16,6 +16,8 @@ import java.util.Scanner;
 import org.usfirst.frc.team972.robot.motionlib.Trajectory;
 import org.usfirst.frc.team972.robot.motionlib.Trajectory.Segment;
 
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+
 
 public class FileInput {
 	
@@ -28,6 +30,15 @@ public class FileInput {
 
 		 byte[] digest = md.digest();
 		 return digest.toString();
+	}
+	
+	public static void addChoosers(SendableChooser chooser) {
+		File dir = new File(homeDir);
+		File[] listFiles = dir.listFiles();
+		
+		for(int i=0; i<listFiles.length; i++) {
+			chooser.addObject(listFiles[i].getName(), listFiles[i].getName());
+		}
 	}
 	
 	public static Trajectory deserializeSplineTraj(String filename) throws Exception {

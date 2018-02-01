@@ -17,6 +17,9 @@ public class MechanismActuators {
 		elevatorLiftMotor = new WPI_TalonSRX(motorId);
 		elevatorLiftMotor.setNeutralMode(NeutralMode.Brake);
 		elevatorLiftMotor.set(ControlMode.PercentOutput, 0);
+		
+		elevatorLiftMotor.configPeakCurrentLimit(50, 0);
+		elevatorLiftMotor.enableCurrentLimit(true);
 	}
 	
 	public void SetupIntakeMotors(int left, int right) {
@@ -25,6 +28,11 @@ public class MechanismActuators {
 		
 		intakeMotorLeft.setNeutralMode(NeutralMode.Coast);
 		intakeMotorRight.setNeutralMode(NeutralMode.Coast);
+		
+		intakeMotorLeft.configPeakCurrentLimit(10, 0);
+		intakeMotorRight.configPeakCurrentLimit(10, 0);
+		intakeMotorLeft.enableCurrentLimit(true);
+		intakeMotorRight.enableCurrentLimit(true);
 		
 		intakeMotorLeft.set(ControlMode.PercentOutput, 0);
 		intakeMotorRight.set(ControlMode.PercentOutput, 0);

@@ -95,7 +95,7 @@ public class TeleopTankDriveTask extends Task {
 		rightDrive = handleDeadband(rightDrive, DEAD_BAND_THROTTLE);
 
 		RobotLogger.toast(leftDrive + " " + rightDrive);
-		driveTrain.driveSidesPWM(leftDrive,rightDrive);
+		driveTrain.driveSidesPWM(leftDrive * speedModes[currentSpeedMode], rightDrive * speedModes[currentSpeedMode]);
 	}
 
 	@Override

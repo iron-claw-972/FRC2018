@@ -44,7 +44,7 @@ public class Robot extends IterativeRobot {
 	
 	AutoQuery autoQuery;
 
-	UserInputGamepad uig = new UserInputGamepad(0);
+	UserInputGamepad uig = new UserInputGamepad(0, 1);
 
 	boolean firstTimeTeleop = false;
 	double realStartTime = 0;
@@ -52,24 +52,26 @@ public class Robot extends IterativeRobot {
 	public void robotInit() {
 		RobotLogger.toast("Robot Init");
 		
+		autoQuery = new AutoQuery();
+		ahrs = (AHRS) sensors.createAHRS();
 		sensors.SetupEncoderDriveTrain(2, 3, 0, 1);
 		
-		autoQuery = new AutoQuery();
 		//sensors.SetupIntakeSensors(0, 1);
-		ahrs = (AHRS) sensors.createAHRS();
-		// mechanismMotors.SetupIntakeMotors(1, 3); //This creates two motors for the
-		// left and right motors of our intake mechanism
+		// mechanismMotors.SetupIntakeMotors(1, 3);
 		
-		driveTrain.SetupProcedure(4, 5, 6, 
-								  7, 8, 9);// fill this out when we have our
+		driveTrain.SetupProcedure(1, 2, 3, 
+								  4, 5, 6);// fill this out when we have our
 		
 		// driveTrain.SetupShift(0, 1);
 		driveTrain.setTalonsPWM_follow();
 		//driveTrain.setTalonsBrake();
+		
+		AutoPicker.setup();
 	}
 
 	public void autonomousInit() {
 		RobotLogger.toast("Auto Init");
+		
 		sensors.resetDriveEncoders();
 		ahrs.reset();
 		ahrs.resetDisplacement();
@@ -83,7 +85,8 @@ public class Robot extends IterativeRobot {
 		Trajectory splineTrajectory = new Trajectory(0);
 		try {
 			// FileInput.serializeSplineTraj(splineTrajectory, "test_route_1");
-			splineTrajectory = FileInput.deserializeSplineTraj("center_to_left");
+			RobotLogger.toast("Performing: " + AutoPicker.getOverrideSelected());
+			splineTrajectory = FileInput.deserializeSplineTraj(AutoPicker.getOverrideSelected());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -138,10 +141,12 @@ public class Robot extends IterativeRobot {
 		driveTrain.setTalonsPWM_follow();
 		driveTrain.diagnosis();
 
+		sensors.resetDriveEncoder();
+		
 		ahrs.reset();
 		ahrs.resetDisplacement();
 		
-		taskExecutor.addTask(new TeleopTankDriveTask(0, uig, driveTrain, ahrs));
+		taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
 		// taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
 		taskExecutor.teleopStart();
 

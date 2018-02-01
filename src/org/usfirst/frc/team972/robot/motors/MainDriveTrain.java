@@ -8,6 +8,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class MainDriveTrain {
 	
 	final int ENCODER_PULSES_PER_REV = 2 * 1024;
@@ -220,18 +221,22 @@ public class MainDriveTrain {
 	}
 	
 	public void driveSidesPWM(double d, double e) {
-		d = d * .6;
-		e = e * .6;
+		//d = d * .6;
+		//e = e * .6;
+		
+		SmartDashboard.putNumber("lo", d);
+		SmartDashboard.putNumber("ro", e);
+		
 		/*
 		 * our drive_train gears are weird... top motor is INVERTED.
 		 */
-		Left_1.set(-d);
+		Left_1.set(d); //invert this
 		Left_2.set(d);
 		Left_3.set(d);
 		
-		Right_1.set(e);
-		Right_2.set(-e);
-		Right_3.set(-e);
+		Right_1.set(-e);
+		Right_2.set(-e); //invert this
+		Right_3.set(-e); //invert this
 		
 		//RobotLogger.toast(d + " " + e);
 	}

@@ -112,9 +112,15 @@ public class TrajectoryExecutionTask extends Task {
 	
 			double leftRealDist = -driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoder());
 			double rightRealDist = driveTrain.pulseToMetersLinear(sensors.getRightDriveEncoder());
-	
+
 			double leftError = desiredLeftPos - leftRealDist;
 			double rightError = desiredRightPos - rightRealDist;
+			
+			SmartDashboard.putNumber("left real", leftRealDist);
+			SmartDashboard.putNumber("right real", rightRealDist);
+			
+			SmartDashboard.putNumber("left Desired Pos", desiredLeftPos);
+			SmartDashboard.putNumber("right Desired Pos", desiredRightPos);
 	
 			double lo = calculateOutput(leftError, desiredLeftVel, desiredLeftAcc, leftErrorLast, realDt);
 			double ro = calculateOutput(rightError, desiredRightVel, desiredRightAcc, rightErrorLast, realDt);
@@ -140,11 +146,11 @@ public class TrajectoryExecutionTask extends Task {
 			if (Math.abs(ro) > 1) {
 				ro = Math.signum(ro);
 			}
-	
+			
 			if(Math.abs(desiredAngle - currentAngle) > angleDifferenceLimitHeading) {
-				driveTrain.driveSidesPWM(lo, ro);
+				driveTrain.driveSidesPWM(lo * .5, ro * .5);
 			} else {
-				driveTrain.driveSidesPWM(lo - angleCorrectionPower, ro + angleCorrectionPower);
+				driveTrain.driveSidesPWM((lo - angleCorrectionPower) * .5, (ro + angleCorrectionPower) * .5);
 			}
 
 	
@@ -169,7 +175,11 @@ public class TrajectoryExecutionTask extends Task {
 		desiredLeftAcc = e;
 		desiredRightAcc = f;
 
-		desiredAngle = -(Math.toDegrees(_ang) - 360);
+		desiredAngle = Math.toDegrees(_ang);
+		if(desiredAngle == 360) {
+			desiredAngle = desiredAngle - 360;
+		}
+		
 		finished = _finished;
 	}
 

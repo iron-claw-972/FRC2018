@@ -2,11 +2,13 @@ package org.usfirst.frc.team972.robot.executor;
 
 import org.usfirst.frc.team972.robot.RobotLogger;
 import org.usfirst.frc.team972.robot.motors.MainDriveTrain;
+import org.usfirst.frc.team972.robot.ui.Sensors;
 import org.usfirst.frc.team972.robot.ui.UserInputGamepad;
 
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class TeleopArcadeDriveTask extends Task {
 
@@ -35,12 +37,15 @@ public class TeleopArcadeDriveTask extends Task {
 	double rightDrive = 0;
 	double easingValue = 0.1;
 	
-	public TeleopArcadeDriveTask(double _executionTime, UserInputGamepad _uig, MainDriveTrain _driveTrain, AHRS _ahrs) {
+	Sensors sensors;
+	
+	public TeleopArcadeDriveTask(double _executionTime, UserInputGamepad _uig, MainDriveTrain _driveTrain, AHRS _ahrs, Sensors _sensors) {
 		super(_executionTime);
 		super.autoRemove = false;
 		uig = _uig;
 		driveTrain = _driveTrain;
 		ahrs = _ahrs;
+		sensors = _sensors;
 	}
 	
 	private double interpolateValues(double want, double actual) {
@@ -152,7 +157,13 @@ public class TeleopArcadeDriveTask extends Task {
 		
 		System.out.println(leftDrive + " " + rightDrive + " " + currentSpeedMode);
 		
-		driveTrain.driveSidesPWM(leftDrive,rightDrive);
+		double leftRealDist = driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoder());
+		double rightRealDist = -driveTrain.pulseToMetersLinear(sensors.getRightDriveEncoder());
+		
+		SmartDashboard.putNumber("left real", leftRealDist);
+		SmartDashboard.putNumber("right real", rightRealDist);
+		
+		driveTrain.driveSidesPWM(leftDrive * speedModes[currentSpeedMode], rightDrive * speedModes[currentSpeedMode]);
 	}
 
 	@Override

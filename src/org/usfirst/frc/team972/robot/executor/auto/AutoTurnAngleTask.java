@@ -56,7 +56,7 @@ public class AutoTurnAngleTask extends Task {
 				inTheZone = 0; //reset if we go out of error range
 			}
 			RobotLogger.toast("pid output: " + output + " hdg: " + heading);
-			mdt.driveSidesPWM(output, -output);
+			mdt.driveSidesPWM(output/2, -output/2);
 		}
 		
 	}
