@@ -85,31 +85,24 @@ public class Robot extends IterativeRobot {
 		Trajectory splineTrajectory = new Trajectory(0);
 		try {
 			// FileInput.serializeSplineTraj(splineTrajectory, "test_route_1");
-			RobotLogger.toast("Performing: " + AutoPicker.getOverrideSelected());
-			splineTrajectory = FileInput.deserializeSplineTraj(AutoPicker.getOverrideSelected());
+			String selectedFile = AutoPicker.selectFile(autoQuery);
+			if(selectedFile != null) {
+				RobotLogger.toast("Performing Auto File: " + selectedFile);
+				splineTrajectory = FileInput.deserializeSplineTraj(selectedFile);
+			} else {
+				RobotLogger.toast("No Auto File!!!", RobotLogger.URGENT);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		RobotLogger.toast("Trajectory Generation Finished");
+		RobotLogger.toast("Trajectory Generation Finished. Prepare for Execution");
 
 		TrajectoryExecutionTask follower = new TrajectoryExecutionTask(0, driveTrain, sensors, ahrs);
 
 		taskExecutor.addTask(new AutoDriveVelocityProfileTask(0,
 				SplineGeneration.generateWheelTrajectories(splineTrajectory, 0.6096), sensors, follower, splineTrajectory));
 		taskExecutor.addTask(follower);
-		
-		taskExecutor.addTask(new AutoTurnAngleTask(0, 180, 10, driveTrain, ahrs));
-		
-		//taskExecutor.addTask(new AutoDrivePositionAngle(0, 2, -90, driveTrain, 10, sensors, ahrs));
-		
-
-		//taskExecutor.addTask(new AutoDrivePositionAngle(0, 5, 0, driveTrain, 30, sensors, ahrs));
-		
-		//taskExecutor.addTask(new AutoTurnAngleTask(1, 90, 1000, driveTrain, ahrs));
-		//taskExecutor.addTask(new AutoTurnAngleTask(1, 180, 1000, driveTrain, ahrs));
-		//taskExecutor.addTask(new AutoTurnAngleTask(1, 270, 1000, driveTrain, ahrs));
-		//taskExecutor.addTask(new AutoTurnAngleTask(1, 360, 1000, driveTrain, ahrs));
 		
 		taskExecutor.autonomousStart();
 

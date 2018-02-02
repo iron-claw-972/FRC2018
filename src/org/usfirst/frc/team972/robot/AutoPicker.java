@@ -1,5 +1,7 @@
 package org.usfirst.frc.team972.robot;
 
+import org.usfirst.frc.team972.robot.executor.auto.AutoQuery;
+
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -22,7 +24,7 @@ public class AutoPicker {
 		modeChooser.addDefault("Do Scale If On Same Side", "side_scale");
 		
 		overrideMode = new SendableChooser();
-		overrideMode.addDefault("Nothing", "");
+		overrideMode.addDefault("NO override", "no_override");
 		FileInput.addChoosers(overrideMode);
 		
 		SmartDashboard.putData("Side Choose", sideChooser);
@@ -32,6 +34,37 @@ public class AutoPicker {
 	
 	public static String getOverrideSelected() {
 		return (String) overrideMode.getSelected();
+	}
+
+	public static String selectFile(AutoQuery query) {
+		String side = (String)sideChooser.getSelected();
+		String mode = (String)modeChooser.getSelected();
+		String override = (String)overrideMode.getSelected();
+		
+		if(override.equals("no_override")) {
+			if(mode.equals("side_switch")) {
+				if((side.equals("right")) && (query.switchSide == 'R')) {
+					return "right_to_right_switch";
+				} else if((side.equals("left")) && (query.switchSide == 'L')) {
+					return "left_to_left_switch";
+				} else if((side.equals("center"))) {
+					if(query.switchSide == 'L') {
+						return "center_to_left_switch";
+					} else if (query.switchSide == 'R') {
+						return "center_to_right_switch";
+					} else {
+						RobotLogger.toast("Auto Side Failure, Start from Center: " + query.switchSide);
+					}
+				} else {
+					RobotLogger.toast("Auto Side Failure: " + side + " " + query.switchSide);
+					return null;
+				}
+			}
+		} else {
+			return override;
+		}
+		
+		return null;
 	}
 	
 }

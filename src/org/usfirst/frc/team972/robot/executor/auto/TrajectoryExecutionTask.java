@@ -30,8 +30,10 @@ public class TrajectoryExecutionTask extends Task {
 
 	AHRS ahrs;
 	MainDriveTrain driveTrain = new MainDriveTrain();
-	PIDControl headingPid = new PIDControl(0.1, 0.0, 0.25);
+	PIDControl headingPid = new PIDControl(0.118, 0.0, 0.5);
 
+	double beginCalibrationAngle = 0;
+	
 	double angleDifferenceLimitHeading = 1;
 	
 	double desiredLeftVel = 0;
@@ -128,7 +130,10 @@ public class TrajectoryExecutionTask extends Task {
 			double currentAngle = ahrs.getAngle();
 			double angleCorrectionPower = -headingPid.getOutput(currentAngle, desiredAngle)/2;
 			
-			RobotLogger.toast(currentAngle + " : " + desiredAngle + " > " + angleCorrectionPower);
+			//RobotLogger.toast(currentAngle + " : " + desiredAngle + " > " + angleCorrectionPower);
+			
+			SmartDashboard.putNumber("currentAngle", currentAngle);
+			SmartDashboard.putNumber("desiredAngle", desiredAngle);
 			
 			if (Math.abs(lo) <= saturatedLimit) {
 				leftErrorSum += leftError * realDt;
@@ -166,6 +171,13 @@ public class TrajectoryExecutionTask extends Task {
 	}
 
 	public void setpoint(double a, double b, double c, double d, double e, double f, double _ang, boolean _finished) {
+		
+		if(beginCalibrationAngle == 0) {
+			beginCalibrationAngle = _ang; //this is super ghetto
+		}
+		
+		_ang = beginCalibrationAngle - _ang;
+		
 		desiredLeftVel = a;
 		desiredRightVel = b;
 
@@ -175,11 +187,8 @@ public class TrajectoryExecutionTask extends Task {
 		desiredLeftAcc = e;
 		desiredRightAcc = f;
 
-		desiredAngle = Math.toDegrees(_ang);
-		if(desiredAngle == 360) {
-			desiredAngle = desiredAngle - 360;
-		}
-		
+		desiredAngle = (_ang/Math.PI) * 180;
+
 		finished = _finished;
 	}
 

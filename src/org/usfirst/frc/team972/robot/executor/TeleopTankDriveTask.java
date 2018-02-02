@@ -24,7 +24,7 @@ public class TeleopTankDriveTask extends Task {
 	
 	int currentSpeedMode = 0;
 	
-	double speedModes[] = {0.3, 0.5, 0.75, 1};
+	double speedModes[] = {0.25, 0.5, 0.75, 1};
 	double speedModeMultiplier = speedModes[0];
 	
 	final int SPEED_MODE_0 = 3; //these are button id's

@@ -11,6 +11,7 @@ public class Sensors {
 	
 	Encoder leftSideEncoderDriveTrain;
 	Encoder rightSideEncoderDriveTrain;
+	Encoder elevatorEncoder;
 	
 	DigitalInput frontIntakeOpticalSensor;
 	DigitalInput backIntakeOpticalSensor;
@@ -23,9 +24,18 @@ public class Sensors {
 		rightSideEncoderDriveTrain.setDistancePerPulse(1);
 	}
 	
+	public void SetupEncoderElevator(int a, int b) {
+		elevatorEncoder = new Encoder(a, b);
+		elevatorEncoder.setDistancePerPulse(1);
+	}
+	
 	public void resetDriveEncoder() {
 		leftSideEncoderDriveTrain.reset();
 		rightSideEncoderDriveTrain.reset();
+	}
+	
+	public int getElevatorEncoder() {
+		return elevatorEncoder.get();
 	}
 	
 	public int getLeftDriveEncoder() {
@@ -47,6 +57,10 @@ public class Sensors {
 	
 	public boolean getBackIntakeSensorValue() {
 		return backIntakeOpticalSensor.get();
+	}
+	
+	public void resetElevatorEncoder() {
+		elevatorEncoder.reset();
 	}
 	
 	public void resetDriveEncoders() {

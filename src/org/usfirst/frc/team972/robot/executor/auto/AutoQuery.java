@@ -8,9 +8,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 public class AutoQuery {
 	DriverStation driverStation;
 	
-	static char switchSide;
-	static char scaleSide;
-	static char enemySwitchSide;
+	public char switchSide;
+	public char scaleSide;
+	public char enemySwitchSide;
 	
 	public AutoQuery() {
 		driverStation = driverStation.getInstance();

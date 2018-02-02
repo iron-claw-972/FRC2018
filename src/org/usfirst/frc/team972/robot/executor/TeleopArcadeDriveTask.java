@@ -20,7 +20,7 @@ public class TeleopArcadeDriveTask extends Task {
 
 	int currentSpeedMode = 0;
 	
-	double speedModes[] = {0.3, 0.5, 0.75, 1};
+	double speedModes[] = {0.25, 0.5, 0.75, 1};
 	
 	final int SPEED_MODE_0 = 3; //these are button id's
 	final int SPEED_MODE_1 = 1;

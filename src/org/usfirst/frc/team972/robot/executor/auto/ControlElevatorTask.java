@@ -1,8 +1,10 @@
 package org.usfirst.frc.team972.robot.executor.auto;
 
+import org.usfirst.frc.team972.robot.RobotLogger;
 import org.usfirst.frc.team972.robot.executor.Task;
 import org.usfirst.frc.team972.robot.motionlib.TrapezoidalMotionProfile;
 import org.usfirst.frc.team972.robot.motors.MechanismActuators;
+import org.usfirst.frc.team972.robot.ui.Sensors;
 
 public class ControlElevatorTask extends Task {
 
@@ -15,31 +17,51 @@ public class ControlElevatorTask extends Task {
 	
 	double lastError = 0;
 	
+	final double DIAMETER_ELEVATOR_WINCH = 0.01905; // meters, not accounting for cord windup radius.
+	
 	MechanismActuators elevatorMech;
 	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.5f, 0.25f);
 	
+	Sensors sensors;
+	
 	float elevatorPositionTarget = 0;
 	
-	public ControlElevatorTask(double _executionTime, MechanismActuators _elevatorMech) {
+	public ControlElevatorTask(double _executionTime, MechanismActuators _elevatorMech, Sensors _sensors) {
 		super(_executionTime);
 		elevatorMech = _elevatorMech;
+		sensors = _sensors;
 		// TODO Auto-generated constructor stub
 	}
 
+	private double calculatePositionMeters(double radians) {
+		return radians * DIAMETER_ELEVATOR_WINCH;
+	}
+	
+	private double encoderPulseToRadians(int pulse) {
+		double rev = pulse/2048;
+		return rev * 2 * Math.PI;
+	}
+	
 	@Override
 	public void init(double dt) {
 		// TODO Auto-generated method stub
 		
 	}
 
+	public void setElevatorPositionTarget(float elevatorPositionTarget) {
+		RobotLogger.toast("Setting Elevator Position to: " + elevatorPositionTarget);
+		this.elevatorPositionTarget = elevatorPositionTarget;
+	}
+	
 	@Override
 	public void execute(double dt) {
 		mp.update(elevatorPositionTarget, dt);
+		double realPosition = calculatePositionMeters(encoderPulseToRadians(sensors.getElevatorEncoder()));
 		double position = mp.position;
 		double velocity = mp.velocity;
 		double acceleration = mp.acceleration;
 		
-		double errorPos = elevatorPositionTarget - position;
+		double errorPos = position - realPosition;
 		
 		if(checkElevatorSafety(position, velocity)) {
 			executePid(dt, velocity, acceleration, errorPos);
