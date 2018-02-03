@@ -14,8 +14,8 @@ public class TeleopArcadeDriveTask extends Task {
 
 	final int LEFT_DRIVE_AXIS = 1;
 	final int RIGHT_DRIVE_AXIS = 4;
-	final int SHIFT_BUTTON = 6;
-	final int TURBO_BUTTON = 8;
+	final int SHIFT_BUTTON = 8;
+	final int TURBO_BUTTON = 6;
 	final double DEAD_BAND_THROTTLE = 0.0005;
 
 	int currentSpeedMode = 0;
@@ -59,6 +59,12 @@ public class TeleopArcadeDriveTask extends Task {
 	
 	//this is teleopPeriodic
 	public void execute(double dt) {
+		
+		if(uig.getStickA().getRawButton(TURBO_BUTTON)) {
+			driveTrain.voltageUnlock();
+		} else {
+			driveTrain.voltageCompensation();
+		}
 		
 		if(uig.getStickA().getRawButton(SPEED_MODE_0)) {
 			currentSpeedMode = 0;
@@ -152,10 +158,8 @@ public class TeleopArcadeDriveTask extends Task {
 		        right_p = -1;
 		}
 
-		leftDrive = interpolateValues(left_p, leftDrive);
-		rightDrive = interpolateValues(right_p, rightDrive);
-		
-		System.out.println(leftDrive + " " + rightDrive + " " + currentSpeedMode);
+		leftDrive = interpolateValues(left_p * speedModes[currentSpeedMode], leftDrive);
+		rightDrive = interpolateValues(right_p * speedModes[currentSpeedMode], rightDrive);
 		
 		double leftRealDist = driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoder());
 		double rightRealDist = -driveTrain.pulseToMetersLinear(sensors.getRightDriveEncoder());
@@ -163,7 +167,7 @@ public class TeleopArcadeDriveTask extends Task {
 		SmartDashboard.putNumber("left real", leftRealDist);
 		SmartDashboard.putNumber("right real", rightRealDist);
 		
-		driveTrain.driveSidesPWM(leftDrive * speedModes[currentSpeedMode], rightDrive * speedModes[currentSpeedMode]);
+		driveTrain.driveSidesPWM(leftDrive, rightDrive);
 	}
 
 	@Override

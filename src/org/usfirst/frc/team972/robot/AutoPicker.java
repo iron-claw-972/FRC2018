@@ -13,16 +13,17 @@ public class AutoPicker {
 	public static void setup() {
 		sideChooser = new SendableChooser();
 		sideChooser.addDefault("Start Center Side", "center");
+		sideChooser.addDefault("Start Center Side Slow", "center_slow");
 		sideChooser.addObject("Start Right Side", "right");
 		sideChooser.addObject("Start Left Side", "left");
 		
 		modeChooser = new SendableChooser();
 		
-		modeChooser.addDefault("Do Switch Any", "any_switch");
-		modeChooser.addDefault("Do Switch If On Same Side", "side_switch");
-		modeChooser.addDefault("Do Scale Any", "any_scale");
-		modeChooser.addDefault("Do Scale If On Same Side", "side_scale");
-		modeChooser.addDefault("Do SCALE or SWITCH if on SAME SIDE", "side_any");
+		modeChooser.addDefault("Do Switch Any (Including Center)", "any_switch");
+		modeChooser.addDefault("Do Switch If On Same Side (Only Side)", "side_switch");
+		modeChooser.addDefault("Do Scale Any (Only Side)", "any_scale");
+		modeChooser.addDefault("Do Scale If On Same Side (Only Side)", "side_scale");
+		modeChooser.addDefault("Do SCALE or SWITCH if on SAME SIDE, or DEFENSE (Only Side)", "side_any");
 		
 		overrideMode = new SendableChooser();
 		overrideMode.addDefault("NO override", "no_override");
@@ -56,6 +57,12 @@ public class AutoPicker {
 					} else {
 						RobotLogger.toast("Auto Side Failure, Start from Center: " + query.switchSide);
 					}
+				} else if(side.equals("center_slow")) {
+					if(query.switchSide == 'L') {
+						return "center_to_left_switch_outside";
+					} else if (query.switchSide == 'R') {
+						return "center_to_right_switch_outside";
+					}
 				} else {
 					RobotLogger.toast("Auto Side Failure: " + side + " " + query.switchSide);
 					return null;
@@ -79,9 +86,9 @@ public class AutoPicker {
 				} else if((side.equals("left")) && (query.scaleSide == 'L')) {
 					return "left_to_left_scale";
 				} else {
-					RobotLogger.toast("No Scale/Switch on side, but want to do any. Performing Scale Defense: " + side);
+					RobotLogger.toast("No Scale/Switch on side, but want to do any. Perform 5 Meter Baseline");
 					
-					return side + "_scale_defense";
+					return "five_meters_foward";
 				}
 			}
 					

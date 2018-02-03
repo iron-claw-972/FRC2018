@@ -16,6 +16,8 @@ public class MainDriveTrain {
 	final double METER_CONVERSION_INCHES = 0.0254;
 	final double GEARBOX_RATIO = 4.8925;
 	
+	final int MOTOR_MAX_CURRENT = 40;
+	
 	final double MOTOR_VOLTAGE_SATURATION = 10;
 	boolean voltageCompensation = false;
 	
@@ -61,6 +63,7 @@ public class MainDriveTrain {
 		talons[2] = Left_3;
 		
 		setTalonsFastRate();
+		setDriveCurrentLimit();
 		
 		RobotLogger.toast("DriveTrain Talons Set, Prepare Diagnosis");
 		diagnosis();
@@ -73,9 +76,6 @@ public class MainDriveTrain {
 		for(int i=0; i<talons.length; i++) {
 			try {
 				if(talons[i].getBusVoltage() > 5) {
-					count++;
-				}
-				if(talons[i].isSafetyEnabled()) {
 					count++;
 					averageBusVoltage = averageBusVoltage + talons[i].getBusVoltage();
 				}
@@ -127,21 +127,9 @@ public class MainDriveTrain {
 		Left_1.set(ControlMode.PercentOutput, 0);
 		Left_2.set(ControlMode.PercentOutput, 0);
 		Left_3.set(ControlMode.PercentOutput, 0);
-		
-		/*
-		Left_1.setNeutralMode(NeutralMode.Brake);
-		Left_2.setNeutralMode(NeutralMode.Brake);
-		Left_3.setNeutralMode(NeutralMode.Brake);
-		
-		Right_1.setNeutralMode(NeutralMode.Brake);
-		Right_2.setNeutralMode(NeutralMode.Brake);
-		Right_3.setNeutralMode(NeutralMode.Brake);
-		*/
-		
+				
 		setTalonsBrake();
 		voltageCompensation();
-		
-		RobotLogger.toast("Setting Drive Talons to Follower Mode vBus");
 	}
 	
 	public void voltageCompensation() {
@@ -176,6 +164,14 @@ public class MainDriveTrain {
 		Right_3.setNeutralMode(NeutralMode.Brake);
 	}
 	
+	public void setDriveCurrentLimit() {
+		RobotLogger.toast("Setting Drive Talons to Current Limit");
+		for(int i=0; i<talons.length; i++) {
+			talons[i].configContinuousCurrentLimit(MOTOR_MAX_CURRENT, 0);
+			talons[i].enableCurrentLimit(true);
+		}
+	}
+	
 	public void setTalonsCoast() {
 		RobotLogger.toast("Setting Drive Talons to Coast");
 		Left_1.setNeutralMode(NeutralMode.Coast);
@@ -195,8 +191,6 @@ public class MainDriveTrain {
 	}
 	
 	public void stopHard() {
-		//Left_1.setNeutralMode(NeutralMode.Coast);
-		//Right_1.setNeutralMode(NeutralMode.Coast);
 		Left_1.set(0);
 		Right_1.set(0);
 		Left_2.set(0);
@@ -220,24 +214,27 @@ public class MainDriveTrain {
 		Right_3.set(0);
 	}
 	
+	public void logOutputCurrent() {
+		double currentSum = 0;
+		for(int i=0; i<talons.length; i++) {
+			currentSum = currentSum + talons[i].getOutputCurrent();
+		}
+		SmartDashboard.putNumber("average drivetrain current", currentSum/6);
+	}
+	
 	public void driveSidesPWM(double d, double e) {
-		//d = d * .6;
-		//e = e * .6;
-		
 		SmartDashboard.putNumber("lo", d);
 		SmartDashboard.putNumber("ro", e);
 		
 		/*
 		 * our drive_train gears are weird... top motor is INVERTED.
 		 */
-		Left_1.set(d); //invert this
+		Left_1.set(-d); //invert this
 		Left_2.set(d);
 		Left_3.set(d);
 		
-		Right_1.set(-e);
+		Right_1.set(e);
 		Right_2.set(-e); //invert this
 		Right_3.set(-e); //invert this
-		
-		//RobotLogger.toast(d + " " + e);
 	}
 }

@@ -18,7 +18,7 @@ public class MechanismActuators {
 		elevatorLiftMotor.setNeutralMode(NeutralMode.Brake);
 		elevatorLiftMotor.set(ControlMode.PercentOutput, 0);
 		
-		elevatorLiftMotor.configPeakCurrentLimit(50, 0);
+		elevatorLiftMotor.configPeakCurrentLimit(30, 0);
 		elevatorLiftMotor.enableCurrentLimit(true);
 	}
 	
