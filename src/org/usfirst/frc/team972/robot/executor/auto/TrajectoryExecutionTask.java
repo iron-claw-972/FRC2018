@@ -16,6 +16,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class TrajectoryExecutionTask extends Task {
 
+	final double POWER_MULTIPLIER = .5; //ideally should be one
+	
 	double kp = 0.35;
 	double ki = 0.005;
 	double kd = 0.01;
@@ -153,9 +155,9 @@ public class TrajectoryExecutionTask extends Task {
 			}
 			
 			if(Math.abs(desiredAngle - currentAngle) > angleDifferenceLimitHeading) {
-				driveTrain.driveSidesPWM(lo * .5, ro * .5);
+				driveTrain.driveSidesPWM(lo * POWER_MULTIPLIER, ro * POWER_MULTIPLIER);
 			} else {
-				driveTrain.driveSidesPWM((lo - angleCorrectionPower) * .5, (ro + angleCorrectionPower) * .5);
+				driveTrain.driveSidesPWM((lo - angleCorrectionPower) * POWER_MULTIPLIER, (ro + angleCorrectionPower) * POWER_MULTIPLIER);
 			}
 
 	
