@@ -1,5 +1,6 @@
 package org.usfirst.frc.team972.robot.executor;
 
+import org.usfirst.frc.team972.robot.RobotLogger;
 import org.usfirst.frc.team972.robot.motors.MechanismActuators;
 import org.usfirst.frc.team972.robot.ui.UserInputGamepad;
 
@@ -11,7 +12,9 @@ public class TeleopWinchTask extends Task {
 	MechanismActuators mechanismMotors;
 	
 	final int winchAxisJoystick = 1;
+	final int winchButton = 3; 
 	final double deadbandValue = 0.05;
+	double output = 0;
 	
 	public TeleopWinchTask(double _executionTime, UserInputGamepad _uig, MechanismActuators _mechanismMotors) {
 		super(_executionTime);
@@ -30,8 +33,14 @@ public class TeleopWinchTask extends Task {
 	@Override
 	public void execute(double dt) {
 		Joystick joystickB = uig.getStickB();
-		double output = joystickB.getRawAxis(winchAxisJoystick);
-		output = handleDeadband(output, deadbandValue);
+		
+		if(joystickB.getRawButton(winchButton) ) {
+			output = joystickB.getRawAxis(winchAxisJoystick);
+			output = handleDeadband(output, deadbandValue);
+		} else {
+			output = 0;
+		}
+		
 		mechanismMotors.RunWinchMotor(output);
 	}
 }

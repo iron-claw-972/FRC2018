@@ -6,6 +6,9 @@ public abstract class Task {
 	boolean executed = false;
 	boolean autoRemove = false;
 	boolean allowedRun = false;
+	
+	public boolean realtimeTask = false;
+	
 	private boolean blocking = false;
 	
 	boolean finished = false;

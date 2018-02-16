@@ -2,6 +2,8 @@ package org.usfirst.frc.team972.robot.ui;
 
 import org.usfirst.frc.team972.robot.RobotLogger;
 
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.*;
@@ -11,10 +13,13 @@ public class Sensors {
 	
 	Encoder leftSideEncoderDriveTrain;
 	Encoder rightSideEncoderDriveTrain;
-	Encoder elevatorEncoder;
+	
+	WPI_TalonSRX elevatorTalon;
+	WPI_TalonSRX elevatorFlopTalon;
+	
 	
 	DigitalInput frontIntakeOpticalSensor;
-	DigitalInput backIntakeOpticalSensor;
+	//DigitalInput backIntakeOpticalSensor;
 	
 	public void SetupEncoderDriveTrain(int l1, int l2, int r1, int r2) {
 		leftSideEncoderDriveTrain = new Encoder(l1, l2);
@@ -24,9 +29,10 @@ public class Sensors {
 		rightSideEncoderDriveTrain.setDistancePerPulse(1);
 	}
 	
-	public void SetupEncoderElevator(int a, int b) {
-		elevatorEncoder = new Encoder(a, b);
-		elevatorEncoder.setDistancePerPulse(1);
+	public void SetupEncoderElevator(WPI_TalonSRX _elevatorTalon) {
+		elevatorTalon = _elevatorTalon;
+		elevatorTalon.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
+		elevatorTalon.setSensorPhase(false);
 	}
 	
 	public void resetDriveEncoder() {
@@ -35,7 +41,13 @@ public class Sensors {
 	}
 	
 	public int getElevatorEncoder() {
-		return elevatorEncoder.get();
+		//System.out.println("e:"+elevatorTalon.getSelectedSensorPosition(0));
+		return elevatorTalon.getSelectedSensorPosition(0);
+	}
+	
+	public int getFlopEncoder() {
+		//System.out.println("f:"+elevatorFlopTalon.getSelectedSensorPosition(0));
+		return elevatorFlopTalon.getSelectedSensorPosition(0);
 	}
 	
 	public int getLeftDriveEncoder() {
@@ -46,21 +58,25 @@ public class Sensors {
 		return rightSideEncoderDriveTrain.get();
 	}
 	
-	public void SetupIntakeSensors(int frontSensorPort, int backSensorPort) {
+	public void SetupIntakeSensors(int frontSensorPort) {
 		frontIntakeOpticalSensor = new DigitalInput(frontSensorPort);
-		backIntakeOpticalSensor = new DigitalInput(backSensorPort);
+		//backIntakeOpticalSensor = new DigitalInput(backSensorPort);
 	}
 	
 	public boolean getFrontIntakeSensorValue() {
-		return frontIntakeOpticalSensor.get();
+		return !frontIntakeOpticalSensor.get();
 	}
 	
+	/*
 	public boolean getBackIntakeSensorValue() {
-		return backIntakeOpticalSensor.get();
-	}
+		//return backIntakeOpticalSensor.get();
+	}*/
 	
 	public void resetElevatorEncoder() {
-		elevatorEncoder.reset();
+		elevatorTalon.setSelectedSensorPosition(0, 0, 0);
+	}
+	public void resetFlopEncoder() {
+		elevatorFlopTalon.setSelectedSensorPosition(0, 0, 0);
 	}
 	
 	public void resetDriveEncoders() {
@@ -71,7 +87,7 @@ public class Sensors {
 	public AHRS createAHRS() {
 		RobotLogger.toast("Preparing to obtain the AHRS");
 		try {
-			ahrs = new AHRS(SPI.Port.kMXP);
+			ahrs = new AHRS(SPI.Port.kMXP, (byte) 200);
 			if (ahrs.isConnected()) {
 				RobotLogger.toast("AHRS Success");
 			} else {
@@ -81,5 +97,16 @@ public class Sensors {
 			RobotLogger.toast("Failed to obtain the AHRS! " + e.getMessage(), RobotLogger.URGENT);
 		}
 		return ahrs;
+	}
+
+	public double getElevatorEncoderVelocity() {
+		return elevatorTalon.getSelectedSensorVelocity(0);
+	}
+
+	public void SetupEncoderFlop(WPI_TalonSRX setupElevatorFlopMotor) {
+		// TODO Auto-generated method stub
+		elevatorFlopTalon = setupElevatorFlopMotor;
+		elevatorFlopTalon.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
+		elevatorFlopTalon.setSensorPhase(false);
 	}
 }

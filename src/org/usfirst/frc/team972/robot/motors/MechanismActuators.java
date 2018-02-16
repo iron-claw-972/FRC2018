@@ -4,6 +4,8 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.*;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 public class MechanismActuators {
 	
 	WPI_TalonSRX intakeMotorLeft;
@@ -11,15 +13,15 @@ public class MechanismActuators {
 	
 	WPI_TalonSRX winchLiftMotor;
 	
+	WPI_TalonSRX elevatorFlopMotor;
 	WPI_TalonSRX elevatorLiftMotor;
 	
-	public void SetupElevatorLiftMotor(int motorId) {
+	public WPI_TalonSRX SetupElevatorLiftMotor(int motorId) {
 		elevatorLiftMotor = new WPI_TalonSRX(motorId);
 		elevatorLiftMotor.setNeutralMode(NeutralMode.Brake);
 		elevatorLiftMotor.set(ControlMode.PercentOutput, 0);
 		
-		elevatorLiftMotor.configPeakCurrentLimit(30, 0);
-		elevatorLiftMotor.enableCurrentLimit(true);
+		return elevatorLiftMotor;
 	}
 	
 	public void SetupIntakeMotors(int left, int right) {
@@ -28,11 +30,6 @@ public class MechanismActuators {
 		
 		intakeMotorLeft.setNeutralMode(NeutralMode.Coast);
 		intakeMotorRight.setNeutralMode(NeutralMode.Coast);
-		
-		intakeMotorLeft.configPeakCurrentLimit(10, 0);
-		intakeMotorRight.configPeakCurrentLimit(10, 0);
-		intakeMotorLeft.enableCurrentLimit(true);
-		intakeMotorRight.enableCurrentLimit(true);
 		
 		intakeMotorLeft.set(ControlMode.PercentOutput, 0);
 		intakeMotorRight.set(ControlMode.PercentOutput, 0);
@@ -45,7 +42,7 @@ public class MechanismActuators {
 	}
 	
 	public void RunIntakeMotors(double power) {
-		intakeMotorLeft.set(power);
+		intakeMotorLeft.set(-power);
 		intakeMotorRight.set(-power);
 	}
 	
@@ -54,6 +51,19 @@ public class MechanismActuators {
 	}
 	
 	public void RunElevatorLiftMotor(double power) {
+		SmartDashboard.putNumber("elevator output", power);
 		elevatorLiftMotor.set(power);
+	}
+
+	public void RunFlopMotor(double power) {
+		elevatorFlopMotor.set(power);
+	}
+	
+	public WPI_TalonSRX SetupElevatorFlopMotor(int i) {
+		elevatorFlopMotor = new WPI_TalonSRX(i);
+		elevatorFlopMotor.setNeutralMode(NeutralMode.Brake);
+		elevatorFlopMotor.set(0);
+		
+		return elevatorFlopMotor;
 	}
 }

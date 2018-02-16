@@ -12,6 +12,7 @@ import org.usfirst.frc.team972.robot.executor.auto.AutoPathRoutines;
 import org.usfirst.frc.team972.robot.executor.auto.AutoQuery;
 import org.usfirst.frc.team972.robot.executor.auto.AutoTurnAngleTask;
 import org.usfirst.frc.team972.robot.executor.auto.ControlElevatorTask;
+import org.usfirst.frc.team972.robot.executor.auto.ControlFlopTask;
 import org.usfirst.frc.team972.robot.executor.auto.TrajectoryExecutionTask;
 import org.usfirst.frc.team972.robot.motionlib.Point;
 import org.usfirst.frc.team972.robot.motionlib.PointsPath;
@@ -26,6 +27,7 @@ import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SPI;
@@ -52,7 +54,7 @@ public class Robot extends IterativeRobot {
 	
 	UserInputGamepad uig = new UserInputGamepad(0, 1);
 
-	AutoPathRoutines autoRoutine = new AutoPathRoutines(taskExecutor, autoQuery, driveTrain, sensors, ahrs);
+	AutoPathRoutines autoRoutine;
 	
 	boolean firstTimeTeleop = false;
 	double realStartTime = 0;
@@ -64,29 +66,39 @@ public class Robot extends IterativeRobot {
 		ahrs = (AHRS) sensors.createAHRS();
 		sensors.SetupEncoderDriveTrain(2, 3, 0, 1);
 		
-		//sensors.SetupIntakeSensors(0, 1);
-		//mechanismMotors.SetupIntakeMotors(1, 3);
+		sensors.SetupIntakeSensors(5);
+		mechanismMotors.SetupIntakeMotors(2, 3);
 		
-		driveTrain.SetupProcedure(3, 4, 5, 
+		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(10));
+		sensors.SetupEncoderFlop(mechanismMotors.SetupElevatorFlopMotor(1));
+		
+		driveTrain.SetupProcedure(4, 5, 6, 
 								  7, 8, 9);
 		
-		// driveTrain.SetupShift(0, 1);
+		driveTrain.SetupShift(40, 0, 1);
 		driveTrain.setTalonsPWM_follow();
 		//driveTrain.setTalonsBrake();
 		
 		AutoPicker.setup();
-		CameraSystem.startCamera();
+		//CameraSystem.startCamera();
+
+		autoRoutine = new AutoPathRoutines(taskExecutor,
+				autoQuery, driveTrain, sensors, ahrs);
 	}
 
 	public void autonomousInit() {
 		RobotLogger.toast("Auto Init");
 		
 		sensors.resetDriveEncoders();
+		sensors.resetElevatorEncoder();
+		sensors.resetFlopEncoder();
+		
 		ahrs.reset();
 		ahrs.resetDisplacement();
 		
 		driveTrain.diagnosis();
-
+		driveTrain.shiftSolenoidDown();
+		 	
 		realStartTime = Timer.getFPGATimestamp();
 		autoQuery.getData(); // retrieve the game data
 		
@@ -100,10 +112,60 @@ public class Robot extends IterativeRobot {
 		autoRealTimeControlLoop();
 	}
 
+	public void autonomousPeriodic() {
+		// do nothing because all of our auto is done in the real time control loop
+	}
+
+	public void teleopInit() {
+		sensors.resetDriveEncoders();
+		sensors.resetElevatorEncoder();
+		sensors.resetFlopEncoder();
+		
+		RobotLogger.toast("Teleop Init");
+		
+		new Compressor(40).start();
+		
+		driveTrain.setTalonsPWM_follow();
+		driveTrain.diagnosis();
+		driveTrain.shiftSolenoidDown();
+
+		sensors.resetDriveEncoder();
+		
+		ahrs.reset();
+		ahrs.resetDisplacement();
+		
+		ControlElevatorTask elevatorControl = new ControlElevatorTask(0, mechanismMotors, sensors);
+		ControlFlopTask flopControl = new ControlFlopTask(0, mechanismMotors, sensors);
+		
+		elevatorControl.realtimeTask = true;
+		flopControl.realtimeTask = true;
+		
+		taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
+		taskExecutor.addTask(new TeleopElevatorTask(0, uig, mechanismMotors, elevatorControl, flopControl));
+		taskExecutor.addTask(elevatorControl);
+		taskExecutor.addTask(flopControl);
+		taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
+		taskExecutor.teleopStart();
+		
+		realStartTime = Timer.getFPGATimestamp();
+		
+		teleopRealTimeController(); //begin 200hz control loop
+	}
+
+	public void disabledPeriodic() {
+		taskExecutor.stop();
+		taskExecutor.forceClearTasks();
+		driveTrain.stopCoast();
+	}
+	
+	public void teleopPeriodic() {
+		//do nothing
+	}
+	
 	public void autoRealTimeControlLoop() {
 		while (this.isEnabled() && this.isAutonomous()) {
 			double current_time = Timer.getFPGATimestamp() - realStartTime;
-			taskExecutor.executeDT(current_time);
+			taskExecutor.executeDT(current_time, false); //dont care about realtime locks, just run at full speed
 			try {
 				Thread.sleep((long) (1000 / REAL_TIME_LOOP_HZ));
 			} catch (Exception e) {
@@ -113,37 +175,24 @@ public class Robot extends IterativeRobot {
 		taskExecutor.stop();
 	}
 
-	public void autonomousPeriodic() {
-		// do nothing because all of our auto is done in the real time control loop
-	}
-
-	public void teleopInit() {
-		RobotLogger.toast("Teleop Init");
-		driveTrain.setTalonsPWM_follow();
-		driveTrain.diagnosis();
-
-		sensors.resetDriveEncoder();
-		
-		ahrs.reset();
-		ahrs.resetDisplacement();
-		
-		ControlElevatorTask elevatorControl = new ControlElevatorTask(0, mechanismMotors, sensors);
-		taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
-		taskExecutor.addTask(new TeleopElevatorTask(0, uig, mechanismMotors, elevatorControl));
-		// taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
-		taskExecutor.teleopStart();
-	}
-
-	public void disabledPeriodic() {
+	public void teleopRealTimeController() {
+		while (this.isEnabled() && this.isOperatorControl()) {
+			double current_time = Timer.getFPGATimestamp() - realStartTime;
+			if(this.isNewDataAvailable()) {
+				taskExecutor.executeDT(current_time, false);
+			} else {
+				taskExecutor.executeDT(current_time, true);
+			}
+			
+			try {
+				Thread.sleep((long) (1000 / REAL_TIME_LOOP_HZ));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		taskExecutor.stop();
-		driveTrain.stopCoast();
 	}
 	
-	public void teleopPeriodic() {
-		double current_time = Timer.getFPGATimestamp() - realStartTime;
-		taskExecutor.executeDT(current_time);
-	}
-
 	public void testPeriodic() {
 
 	}

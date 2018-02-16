@@ -1,6 +1,7 @@
 package org.usfirst.frc.team972.robot.motionlib;
 
 public class TrapezoidalMotionProfile {
+	
   private double maxVelocity = 0;
   private double maxAcceleration = 0;
   public double position = 0;
@@ -8,12 +9,19 @@ public class TrapezoidalMotionProfile {
   public double velocity = 0;
   private double oldVelocity = 0;
   public double acceleration = 0;
-  private double lastTime = 0;
+  private double lastTime = -1; //start at -1 so we dont have weird timing calc error
   private double delta = 0;
   
   public TrapezoidalMotionProfile(double _maxVelocity, double _maxAcceleration) {
     maxVelocity = _maxVelocity;
     maxAcceleration = _maxAcceleration;
+  }
+  
+  public void setRealPositions(double p) {
+	  position = p;
+	  oldPosition = p;
+	  velocity = 0;
+	  oldVelocity = 0;
   }
   
   private boolean timeCalculation(double time) {
@@ -34,10 +42,14 @@ public class TrapezoidalMotionProfile {
     this.oldVelocity = this.velocity;
     
     if(timeValid) {
-      this.timeCalculation(setpoint);
+      this.calculateTrapezodialProfile(setpoint);
     }
     
     stateCalculation();
+  }
+  
+  public void setTime(double t) {
+	  lastTime = t;
   }
   
   private void stateCalculation() {

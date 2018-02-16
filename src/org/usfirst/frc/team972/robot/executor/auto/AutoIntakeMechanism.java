@@ -30,12 +30,15 @@ public class AutoIntakeMechanism extends Task {
 	
 	@Override
 	public void execute(double dt) {
+		/*
+		 * TODO: FIX ALL THIS 
+		 */
 		if(dt > timeout) {
 			RobotLogger.toast("Intake Timeout");
 			super.destroy();
 		} else {
 			boolean frontIntakeSensorValue = sensors.getFrontIntakeSensorValue();
-			boolean backIntakeSensorValue = sensors.getBackIntakeSensorValue();
+			boolean backIntakeSensorValue = true; //sensors.getBackIntakeSensorValue();
 			if(pullingIn) {
 				if (backIntakeSensorValue == false) {
 					motors.RunIntakeMotors(-power);

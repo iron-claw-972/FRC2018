@@ -1,6 +1,7 @@
 package org.usfirst.frc.team972.robot.executor;
 
 import org.usfirst.frc.team972.robot.RobotLogger;
+import org.usfirst.frc.team972.robot.motionlib.PIDControl;
 import org.usfirst.frc.team972.robot.motors.MainDriveTrain;
 import org.usfirst.frc.team972.robot.ui.UserInputGamepad;
 
@@ -35,6 +36,8 @@ public class TeleopTankDriveTask extends Task {
 	double leftDrive = 0;
 	double rightDrive = 0;
 	double easingValue = 0.1;
+	
+	PIDControl pidAngle;
 	
 	public TeleopTankDriveTask(double _executionTime, UserInputGamepad _uig, MainDriveTrain _driveTrain, AHRS _ahrs) {
 		super(_executionTime);
@@ -84,17 +87,13 @@ public class TeleopTankDriveTask extends Task {
 		} else {
 			driveTrain.voltageCompensation();
 		}
-		
-		//leftDrive = wantLeftDrive;
-		//rightDrive = wantRightDrive;
-		
+
 		leftDrive = interpolateValues(wantLeftDrive, leftDrive);
 		rightDrive = interpolateValues(wantRightDrive, rightDrive);
 		
 		leftDrive = handleDeadband(leftDrive, DEAD_BAND_THROTTLE);
 		rightDrive = handleDeadband(rightDrive, DEAD_BAND_THROTTLE);
 
-		RobotLogger.toast(leftDrive + " " + rightDrive);
 		driveTrain.driveSidesPWM(leftDrive * speedModes[currentSpeedMode], rightDrive * speedModes[currentSpeedMode]);
 	}
 

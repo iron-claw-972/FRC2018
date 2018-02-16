@@ -44,6 +44,10 @@ public class TaskExecutor {
 			}
 		}
 	}
+
+	public void forceClearTasks() {
+		taskList = null;
+	}
 	
 	public void resetTasks() {
 		if(taskList != null) {
@@ -74,29 +78,31 @@ public class TaskExecutor {
 		start();
 	}
 	
-	public void executeDT(double timestamp) {
+	public void executeDT(double timestamp, boolean rt) {
 		for(int i=0; i<taskList.length; i++) {
 			Task task = taskList[i];
 			if(task != null) {
 				if((task.executionTime < timestamp) && task.allowedRun) {
-					boolean blocking = false;
-					
-					if(task.executed == false) {
-						task.realExecutionTime = timestamp;
-						task.init(timestamp - task.realExecutionTime);
-					}
-	
-					task.execute(timestamp - task.realExecutionTime);
-					
-					task.setExecuted();
-					blocking = task.blocking();
-					
-					if(task.autoRemove || task.finished) {
-						taskList[i] = null;
-						RobotLogger.toast("Task: " + task + " is finished/removed at " + timestamp);
-					}
-					if(blocking) {
-						break;
+					if((rt == false) || (rt && task.realtimeTask)) {
+						boolean blocking = false;
+						
+						if(task.executed == false) {
+							task.realExecutionTime = timestamp;
+							task.init(timestamp - task.realExecutionTime);
+						}
+		
+						task.execute(timestamp - task.realExecutionTime);
+						
+						task.setExecuted();
+						blocking = task.blocking();
+						
+						if(task.autoRemove || task.finished) {
+							taskList[i] = null;
+							RobotLogger.toast("Task: " + task + " is finished/removed at " + timestamp);
+						}
+						if(blocking) {
+							break;
+						}
 					}
 				}
 			}

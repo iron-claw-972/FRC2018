@@ -2,29 +2,37 @@ package org.usfirst.frc.team972.robot.executor.auto;
 
 import org.usfirst.frc.team972.robot.RobotLogger;
 import org.usfirst.frc.team972.robot.executor.Task;
+import org.usfirst.frc.team972.robot.motionlib.CoolMath;
+import org.usfirst.frc.team972.robot.motionlib.PIDControl;
 import org.usfirst.frc.team972.robot.motionlib.TrapezoidalMotionProfile;
 import org.usfirst.frc.team972.robot.motors.MechanismActuators;
 import org.usfirst.frc.team972.robot.ui.Sensors;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 public class ControlElevatorTask extends Task {
 
-	double kp = 0.0;
-	double ki = 0.0;
-	double kd = 0.00;
+	boolean allowedControl = false;
+	boolean setPositionOnce = false;
+	
+	double feedfoward = 0;
+	double easingValue = 0.9;
+	double lastWantedPos = 0;
+	
+	PIDControl pidRightWinch = new PIDControl(0.9, 0.005, 0.025);
+	
+	double ka = 0.005;
+	double kv = (double)1/.42;
 
-	double ka = 0.0;
-	double kv = 0.0;
-	
-	double lastError = 0;
-	
-	final double DIAMETER_ELEVATOR_WINCH = 0.01905; // meters, not accounting for cord windup radius.
+	final double DIAMETER_ELEVATOR_WINCH = 0.023495; // meters, not accounting for cord windup radius.
+	final double GEARBOX_RATIO = 36;
 	
 	MechanismActuators elevatorMech;
-	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.5f, 0.25f);
+	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.425, 1);
 	
 	Sensors sensors;
 	
-	float elevatorPositionTarget = 0;
+	double elevatorPositionTarget = 0;
 	
 	public ControlElevatorTask(double _executionTime, MechanismActuators _elevatorMech, Sensors _sensors) {
 		super(_executionTime);
@@ -32,52 +40,99 @@ public class ControlElevatorTask extends Task {
 		sensors = _sensors;
 		// TODO Auto-generated constructor stub
 	}
-
+	
 	private double calculatePositionMeters(double radians) {
 		return radians * DIAMETER_ELEVATOR_WINCH;
 	}
 	
 	private double encoderPulseToRadians(int pulse) {
-		double rev = pulse/2048;
-		return rev * 2 * Math.PI;
+		double rev = (double)pulse/(double)4096/GEARBOX_RATIO;
+		return rev * Math.PI;
 	}
 	
 	@Override
 	public void init(double dt) {
-		// TODO Auto-generated method stub
-		
+		pidRightWinch.setOutputFilter(0.025);
+		pidRightWinch.setMaxIOutput(0.05);
+		pidRightWinch.setOutputLimits(-1, 1);
 	}
 
-	public void setElevatorPositionTarget(float elevatorPositionTarget) {
+	public void setElevatorPositionTarget(double elevatorPositionTarget) {
 		RobotLogger.toast("Setting Elevator Position to: " + elevatorPositionTarget);
 		this.elevatorPositionTarget = elevatorPositionTarget;
+		SmartDashboard.putNumber("elevator target pos: ", elevatorPositionTarget);
 	}
 	
 	@Override
-	public void execute(double dt) {
-		mp.update(elevatorPositionTarget, dt);
+	public void execute(double dt) {		
+		mp.update(elevatorPositionTarget, CoolMath.roundDigits(dt, 4));
 		double realPosition = calculatePositionMeters(encoderPulseToRadians(sensors.getElevatorEncoder()));
-		double position = mp.position;
-		double velocity = mp.velocity;
+		double position = CoolMath.roundDigits(mp.position, 3);
+		double velocity = CoolMath.roundDigits(mp.velocity, 3);
 		double acceleration = mp.acceleration;
 		
-		double errorPos = position - realPosition;
-		
-		if(checkElevatorSafety(position, velocity)) {
-			executePid(dt, velocity, acceleration, errorPos);
+		SmartDashboard.putNumber("elevator real pos: ", realPosition);
+		SmartDashboard.putNumber("elevator curr target: ", position);
+		SmartDashboard.putNumber("elevator desired vel", velocity);
+
+		if(setPositionOnce) {
+			setElevatorPositionTarget(realPosition);
+			mp.setRealPositions(realPosition);
+			setPositionOnce = false;
 		}
 		
-		lastError = errorPos;
+		if(checkElevatorSafety(realPosition, velocity) && allowedControl) {
+			executePid(velocity, acceleration, realPosition, position, elevatorPositionTarget);
+		} else {
+			if(allowedControl) {
+				elevatorMech.RunElevatorLiftMotor(0);
+			}
+		}
+		
+		lastWantedPos = position;
 	}
 	
 	private boolean checkElevatorSafety(double position, double velocity) {
 		//TODO: write elevator bound  checking so we dont break the mechanism
-		return true;	
+		if(position > 2.1) {
+			RobotLogger.toast("Elevator Safety Tripped: " + position, RobotLogger.URGENT);
+			return false;
+		} else {
+			return true;
+		}
 	}
 	
-	private void executePid(double dt, double velWant, double accWant, double errorPos) {
-		double output = (kp * errorPos) + (kd * (errorPos - lastError) / dt) + (kv * velWant)
+	private void executePid(double velWant, double accWant, double realPos, double currWantPos, double finalWant) {
+		/*double output = (kp * errorPos) + (kd * (errorPos - lastError) / dt) + (kv * velWant)
 				+ (ka * accWant);
-		elevatorMech.RunElevatorLiftMotor(output);
+		if((output > 1) || (output < -1)) {
+			output = Math.signum(output);
+		}*/
+		double signnum = Math.signum(currWantPos - lastWantedPos);
+		feedfoward = interpolateValues((kv * Math.abs(velWant) * signnum) + (ka * Math.abs(accWant) * signnum), feedfoward);
+		pidRightWinch.setF(feedfoward);
+		double output = pidRightWinch.getOutput(realPos, currWantPos) + feedfoward;
+		
+		SmartDashboard.putNumber("elevator ff", feedfoward);
+		
+		elevatorMech.RunElevatorLiftMotor(handleDeadband(output, 0.05));
+	}
+	
+	private double interpolateValues(double want, double actual) {
+		double error = (want - actual) * easingValue;
+		return actual + error;
+	}
+	
+	public void setControl(boolean control) {
+		allowedControl = control;
+	}
+
+    public double handleDeadband(double val, double deadband) {
+        return (Math.abs(val) > Math.abs(deadband)) ? val : 0.0;
+    }
+	
+	public void setElevatorPositionTargetOnceCycle(double dt) {
+		mp.setTime(dt);
+		setPositionOnce = true;
 	}
 }

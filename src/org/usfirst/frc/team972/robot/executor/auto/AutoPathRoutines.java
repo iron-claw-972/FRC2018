@@ -58,6 +58,7 @@ public class AutoPathRoutines {
 				break;
 			default:
 				RobotLogger.toast("Unhandled Auto Pick: " + selectedFile, RobotLogger.URGENT);
+				performTraj(selectedFile);
 				break;
 		}
 		

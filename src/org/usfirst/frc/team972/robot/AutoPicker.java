@@ -93,6 +93,7 @@ public class AutoPicker {
 			}
 					
 		} else {
+			RobotLogger.toast("Overrided Auto: " + override);
 			return override;
 		}
 		

@@ -12,9 +12,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class MainDriveTrain {
 	
 	final int ENCODER_PULSES_PER_REV = 2 * 1024;
-	final int WHEEL_DIAMETER_INCHES = 4;
+	final int WHEEL_DIAMETER_INCHES = 6;
 	final double METER_CONVERSION_INCHES = 0.0254;
-	final double GEARBOX_RATIO = 4.8925;
+	final double GEARBOX_RATIO = 1; //4.8925, real bot is direct driven
 	
 	final int MOTOR_MAX_CURRENT = 40;
 	
@@ -45,8 +45,8 @@ public class MainDriveTrain {
 		Left_3 = new WPI_TalonSRX(b);
 	}
 	
-	public void SetupShift(int a, int b) {
-		ShiftSolenoid = new DoubleSolenoid(a, b);
+	public void SetupShift(int id, int a, int b) {
+		ShiftSolenoid = new DoubleSolenoid(id, a, b);
 		RobotLogger.toast("DriveTrain Solenoid Set");
 	}
 	
@@ -63,8 +63,7 @@ public class MainDriveTrain {
 		talons[2] = Left_3;
 		
 		setTalonsFastRate();
-		setDriveCurrentLimit();
-		
+
 		RobotLogger.toast("DriveTrain Talons Set, Prepare Diagnosis");
 		diagnosis();
 	}
@@ -108,13 +107,15 @@ public class MainDriveTrain {
 	}
 	
 	public void shiftSolenoidUp() {
-		//ShiftSolenoid.set(DoubleSolenoid.Value.kForward);
+		ShiftSolenoid.set(DoubleSolenoid.Value.kReverse);
 		RobotLogger.toast("DriveTrain Shift Up");
+		SmartDashboard.putString("Gear Mode", "high gear");
 	}
 	
 	public void shiftSolenoidDown() {
-		//ShiftSolenoid.set(DoubleSolenoid.Value.kReverse);
+		ShiftSolenoid.set(DoubleSolenoid.Value.kForward);
 		RobotLogger.toast("DriveTrain Shift Down");
+		SmartDashboard.putString("Gear Mode", "low gear");
 	}
 	
 	public void setTalonsPWM_follow() {
@@ -162,14 +163,6 @@ public class MainDriveTrain {
 		Right_1.setNeutralMode(NeutralMode.Brake);
 		Right_2.setNeutralMode(NeutralMode.Brake);
 		Right_3.setNeutralMode(NeutralMode.Brake);
-	}
-	
-	public void setDriveCurrentLimit() {
-		RobotLogger.toast("Setting Drive Talons to Current Limit");
-		for(int i=0; i<talons.length; i++) {
-			talons[i].configContinuousCurrentLimit(MOTOR_MAX_CURRENT, 0);
-			talons[i].enableCurrentLimit(true);
-		}
 	}
 	
 	public void setTalonsCoast() {
@@ -229,6 +222,7 @@ public class MainDriveTrain {
 		/*
 		 * our drive_train gears are weird... top motor is INVERTED.
 		 */
+		
 		Left_1.set(-d); //invert this
 		Left_2.set(d);
 		Left_3.set(d);
@@ -236,5 +230,6 @@ public class MainDriveTrain {
 		Right_1.set(e);
 		Right_2.set(-e); //invert this
 		Right_3.set(-e); //invert this
+		
 	}
 }

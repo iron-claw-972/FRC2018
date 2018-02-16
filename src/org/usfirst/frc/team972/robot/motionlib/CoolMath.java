@@ -48,6 +48,11 @@ public class CoolMath {
     return PIO2 / 2 + mxatan((arg - 1) / (arg + 1));
   }
 
+  public static double roundDigits(double num, double digs) {
+	double rounding_factor = Math.pow(10, digs);
+	return Math.round(num * rounding_factor)/rounding_factor;
+  }
+  
   // implementation of atan
   public static double atan(double arg) {
     if (arg > 0) {

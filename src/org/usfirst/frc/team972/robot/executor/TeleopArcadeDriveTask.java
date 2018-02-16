@@ -1,6 +1,7 @@
 package org.usfirst.frc.team972.robot.executor;
 
 import org.usfirst.frc.team972.robot.RobotLogger;
+import org.usfirst.frc.team972.robot.motionlib.PIDControl;
 import org.usfirst.frc.team972.robot.motors.MainDriveTrain;
 import org.usfirst.frc.team972.robot.ui.Sensors;
 import org.usfirst.frc.team972.robot.ui.UserInputGamepad;
@@ -14,13 +15,14 @@ public class TeleopArcadeDriveTask extends Task {
 
 	final int LEFT_DRIVE_AXIS = 1;
 	final int RIGHT_DRIVE_AXIS = 4;
-	final int SHIFT_BUTTON = 8;
+	final int SHIFT_BUTTON = 5;
 	final int TURBO_BUTTON = 6;
-	final double DEAD_BAND_THROTTLE = 0.0005;
 
 	int currentSpeedMode = 0;
 	
 	double speedModes[] = {0.25, 0.5, 0.75, 1};
+	
+	double z_alpha = Math.PI * 0.4;
 	
 	final int SPEED_MODE_0 = 3; //these are button id's
 	final int SPEED_MODE_1 = 1;
@@ -36,8 +38,14 @@ public class TeleopArcadeDriveTask extends Task {
 	double leftDrive = 0;
 	double rightDrive = 0;
 	double easingValue = 0.1;
-	
+
 	Sensors sensors;
+	PIDControl pidAngle;
+	
+	boolean calibratingAngle = false;
+	double desiredAngle = 0;
+	double fakeDesiredAngle = 0;
+	double lastDesiredAngle = 0;
 	
 	public TeleopArcadeDriveTask(double _executionTime, UserInputGamepad _uig, MainDriveTrain _driveTrain, AHRS _ahrs, Sensors _sensors) {
 		super(_executionTime);
@@ -46,7 +54,13 @@ public class TeleopArcadeDriveTask extends Task {
 		driveTrain = _driveTrain;
 		ahrs = _ahrs;
 		sensors = _sensors;
+		
+		pidAngle = new PIDControl(0.025, 0, 0.05);
+		pidAngle.setOutputLimits(-0.08, 0.08);
+		pidAngle.setSetpointRange(2);
+		pidAngle.setOutputFilter(0.1);
 	}
+	
 	
 	private double interpolateValues(double want, double actual) {
 		double error = (want - actual) * easingValue;
@@ -59,7 +73,8 @@ public class TeleopArcadeDriveTask extends Task {
 	
 	//this is teleopPeriodic
 	public void execute(double dt) {
-		
+		double currentAngle = ahrs.getAngle();
+
 		if(uig.getStickA().getRawButton(TURBO_BUTTON)) {
 			driveTrain.voltageUnlock();
 		} else {
@@ -76,9 +91,40 @@ public class TeleopArcadeDriveTask extends Task {
 			currentSpeedMode = 3;
 		}
 		
+		if(uig.getStickA().getRawButtonPressed(SHIFT_BUTTON)) {
+			if(driveGearMode == 0) {
+				driveGearMode = 1; //do high gear
+				driveTrain.shiftSolenoidUp();
+			} else {
+				driveGearMode = 0; //do low gear
+				driveTrain.shiftSolenoidDown();
+			}
+		}
+		
 		double throttle = -uig.getStickA().getRawAxis(LEFT_DRIVE_AXIS);
 		double steer_set = uig.getStickA().getRawAxis(RIGHT_DRIVE_AXIS);
+		double correctionAngleOutput = 0;
+		
+		throttle = handleDeadband(throttle, 0.05);
+		steer_set = handleDeadband(steer_set, 0.05);
 
+		if(steer_set == 0) {
+			if(calibratingAngle) {
+				fakeDesiredAngle = ahrs.getAngle();
+				double deltaDesired = fakeDesiredAngle - lastDesiredAngle;
+				if(Math.abs(deltaDesired) < 0.05) {
+					RobotLogger.toast("Teleop Arcade Close Loop Set: " + fakeDesiredAngle);
+					calibratingAngle = false;
+				}
+				desiredAngle = fakeDesiredAngle;
+				lastDesiredAngle = fakeDesiredAngle;
+			}
+			
+			correctionAngleOutput = pidAngle.getOutput(currentAngle, desiredAngle);
+		} else {
+			calibratingAngle = true;
+		}
+		
 		double turn_in_place = 1;
 
 		double steering_compensate_inertia = steer_set - last_steering_set;
@@ -86,11 +132,9 @@ public class TeleopArcadeDriveTask extends Task {
 
 		double steering_inertia_scale = 0;
 
-		if ((throttle > 0.05) || (steer_set == 0)) {
+		if ((Math.abs(throttle) > 0.05) || (steer_set == 0)) {
 		        turn_in_place = 0;
 		}
-
-		double z_alpha = Math.PI * 0.4;
 
 		steer_set = Math.sin(z_alpha * steer_set) / Math.sin(z_alpha);
 		steer_set = Math.sin(z_alpha * steer_set) / Math.sin(z_alpha);
@@ -166,8 +210,9 @@ public class TeleopArcadeDriveTask extends Task {
 		
 		SmartDashboard.putNumber("left real", leftRealDist);
 		SmartDashboard.putNumber("right real", rightRealDist);
+		SmartDashboard.putNumber("angle ahrs", currentAngle);
 		
-		driveTrain.driveSidesPWM(leftDrive, rightDrive);
+		driveTrain.driveSidesPWM(leftDrive + correctionAngleOutput, rightDrive - correctionAngleOutput);
 	}
 
 	@Override

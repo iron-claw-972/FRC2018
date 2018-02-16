@@ -13,10 +13,13 @@ public class IntakeSystemTask extends Task{
 	UserInputGamepad uig;
 	Sensors sensors;
 	double intakeMotorPower = 0.5;
+	double intakeHoldPower = 0.05;
+	
 	boolean activateIntakeMotors;
 	boolean reverseIntakeMotors;
 	boolean frontIntakeSensorValue;
 	boolean backIntakeSensorValue;
+	boolean holdBlockSlow;
 	
 	public IntakeSystemTask(double _executionTime, UserInputGamepad _uig, MechanismActuators _mechanismMotors, Sensors _sensors) {
 		super(_executionTime);
@@ -33,16 +36,30 @@ public class IntakeSystemTask extends Task{
 
 	@Override
 	public void execute(double dt) {
-		Joystick mainJoystick = uig.getStickA();
+		Joystick mainJoystick = uig.getStickB();
 		activateIntakeMotors = mainJoystick.getRawButton(1);
 		reverseIntakeMotors = mainJoystick.getRawButton(2);
-		frontIntakeSensorValue = sensors.getFrontIntakeSensorValue();
-		backIntakeSensorValue = sensors.getBackIntakeSensorValue();
+		holdBlockSlow = mainJoystick.getRawButton(5);
 		
+		//frontIntakeSensorValue = sensors.getFrontIntakeSensorValue();
+		//backIntakeSensorValue = sensors.getBackIntakeSensorValue();
+		/*
 		if (activateIntakeMotors && !(backIntakeSensorValue && frontIntakeSensorValue)) {
 			mechanismMotors.RunIntakeMotors(intakeMotorPower);
 		} else if(reverseIntakeMotors) {
 			mechanismMotors.RunIntakeMotors(-intakeMotorPower);
+		} else {
+			mechanismMotors.RunIntakeMotors(0);
+		}
+		*/
+		
+
+		if (activateIntakeMotors && !sensors.getFrontIntakeSensorValue()) {
+			mechanismMotors.RunIntakeMotors(-intakeMotorPower);
+		} else if(reverseIntakeMotors) {
+			mechanismMotors.RunIntakeMotors(intakeMotorPower);
+		} else if(holdBlockSlow){
+			mechanismMotors.RunIntakeMotors(-intakeHoldPower);
 		} else {
 			mechanismMotors.RunIntakeMotors(0);
 		}
