@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class MechanismActuators {
 	
+	final double MAX_INTAKE_DRAW = 15;
+	
 	WPI_TalonSRX intakeMotorLeft;
 	WPI_TalonSRX intakeMotorRight;
 	
@@ -57,6 +59,10 @@ public class MechanismActuators {
 
 	public void RunFlopMotor(double power) {
 		elevatorFlopMotor.set(power);
+	}
+	
+	public boolean IntakeMotorOverdraw() {
+		return (intakeMotorLeft.getOutputCurrent() > MAX_INTAKE_DRAW) || (intakeMotorRight.getOutputCurrent() > MAX_INTAKE_DRAW);  
 	}
 	
 	public WPI_TalonSRX SetupElevatorFlopMotor(int i) {
