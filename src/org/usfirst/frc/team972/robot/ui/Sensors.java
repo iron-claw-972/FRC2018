@@ -13,10 +13,10 @@ public class Sensors {
 	
 	Encoder leftSideEncoderDriveTrain;
 	Encoder rightSideEncoderDriveTrain;
+	Encoder flop;
 	
 	WPI_TalonSRX elevatorTalon;
-	WPI_TalonSRX elevatorFlopTalon;
-	
+
 	
 	DigitalInput frontIntakeOpticalSensor;
 	//DigitalInput backIntakeOpticalSensor;
@@ -46,8 +46,7 @@ public class Sensors {
 	}
 	
 	public int getFlopEncoder() {
-		//System.out.println("f:"+elevatorFlopTalon.getSelectedSensorPosition(0));
-		return elevatorFlopTalon.getSelectedSensorPosition(0);
+		return flop.get();
 	}
 	
 	public int getLeftDriveEncoder() {
@@ -80,7 +79,7 @@ public class Sensors {
 		elevatorTalon.setSelectedSensorPosition(0, 0, 0);
 	}
 	public void resetFlopEncoder() {
-		elevatorFlopTalon.setSelectedSensorPosition(0, 0, 0);
+		flop.reset();
 	}
 	
 	public void resetDriveEncoders() {
@@ -107,10 +106,8 @@ public class Sensors {
 		return elevatorTalon.getSelectedSensorVelocity(0);
 	}
 
-	public void SetupEncoderFlop(WPI_TalonSRX setupElevatorFlopMotor) {
+	public void SetupEncoderFlop(int a, int b) {
 		// TODO Auto-generated method stub
-		elevatorFlopTalon = setupElevatorFlopMotor;
-		elevatorFlopTalon.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
-		elevatorFlopTalon.setSensorPhase(false);
+		flop = new Encoder(a, b);
 	}
 }

@@ -223,6 +223,8 @@ public class MainDriveTrain {
 		SmartDashboard.putNumber("lo", d);
 		SmartDashboard.putNumber("ro", e);
 		
+		logOutputCurrent();
+		
 		/*
 		 * our drive_train gears are weird... top motor is INVERTED.
 		 */

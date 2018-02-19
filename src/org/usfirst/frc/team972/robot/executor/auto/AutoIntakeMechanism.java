@@ -11,6 +11,13 @@ public class AutoIntakeMechanism extends Task {
 	boolean pullingIn;
 	double power;
 
+	double output = 0;
+	double easingValue = 0.2;
+	double overdrawReducePower = 0.15;
+	
+	final int MAX_INTAKE_TRIPPED = 50; // 50/200 = 0.25 seconds
+	int counterIntakeTripped = 0;
+
 	Sensors sensors;
 	MechanismActuators motors;
 	
@@ -23,6 +30,11 @@ public class AutoIntakeMechanism extends Task {
 		motors = _motors;
 	}
 
+	private double interpolateValues(double want, double actual) {
+		double error = (want - actual) * easingValue;
+		return actual + error;
+	}
+	
 	@Override
 	public void init(double dt) {
 		
@@ -35,27 +47,36 @@ public class AutoIntakeMechanism extends Task {
 		 */
 		if(dt > timeout) {
 			RobotLogger.toast("Intake Timeout");
+			output = 0;
 			super.destroy();
 		} else {
 			boolean frontIntakeSensorValue = sensors.getFrontIntakeSensorValue();
-			boolean backIntakeSensorValue = true; //sensors.getBackIntakeSensorValue();
+
 			if(pullingIn) {
-				if (backIntakeSensorValue == false) {
-					motors.RunIntakeMotors(-power);
+				if(frontIntakeSensorValue) {
+					counterIntakeTripped++;
 				} else {
-					RobotLogger.toast("Intake Finished Pulling In");
-					super.destroy(); //we have it in all the way!
+					counterIntakeTripped = 0;
 				}
-			} else {
-				if(frontIntakeSensorValue || backIntakeSensorValue) {
-					motors.RunIntakeMotors(power);
-				} else {
-					//we have shot out the cube!
-					RobotLogger.toast("Intake Finished Shooting");
+				
+				if(counterIntakeTripped > MAX_INTAKE_TRIPPED) {
+					RobotLogger.toast("Auto Intake Tripped, Finished Intaking");
+					output = 0;
 					super.destroy();
+				} else {
+					output = interpolateValues(power, output);
 				}
+				
+			} else {
+				output = interpolateValues(-power, output);
+			}
+			
+			if(motors.IntakeMotorOverdraw()) {
+				output = interpolateValues(Math.signum(output) * overdrawReducePower, output);
 			}
 		}
+		
+		motors.RunIntakeMotors(output);
 	}
 
 }

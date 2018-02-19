@@ -14,7 +14,8 @@ public class ControlFlopTask extends Task {
 
 	final double DOWN_MINIMUM = 0.05;
 	
-	final double COEFFICENT_TORQUE_FEEDFOWARD = 0.325;
+	final double COEFFICENT_TORQUE_FEEDFOWARD = 0.05;
+	final double STARTING_REV = 0.245;
 	
 	boolean allowedControl = false;
 	boolean setPositionOnce = false;
@@ -23,15 +24,13 @@ public class ControlFlopTask extends Task {
 	double easingValue = 0.9;
 	double lastWantedPos = 0;
 	
-	PIDControl pidFlopMotor = new PIDControl(15, 0.0005, 0);
+	PIDControl pidFlopMotor = new PIDControl(2, 0.0005, 0);
 	
 	double ka = 0.005;
 	double kv = (double)5.5;
-
-	final double GEARBOX_RATIO = 79.5;
 	
 	MechanismActuators flopMech;
-	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.15, 0.15);
+	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.05, 0.2);
 	
 	Sensors sensors;
 	
@@ -41,16 +40,17 @@ public class ControlFlopTask extends Task {
 		super(_executionTime);
 		flopMech = _flopMech;
 		sensors = _sensors;
+		mp.setRealPositions(STARTING_REV);
 	}
 
 	private double encoderPulseRevs(int pulse) {
-		double rev = (double)pulse/(double)4096/GEARBOX_RATIO;
+		double rev = (double)pulse/(double)2048;
 		return rev;
 	}
 	
 	@Override
 	public void init(double dt) {
-		pidFlopMotor.setOutputLimits(-0.6, 0.6);
+		pidFlopMotor.setOutputLimits(-0.3, 0.3);
 	}
 
 	public void setFlopPositionTarget(double target) {
@@ -60,7 +60,7 @@ public class ControlFlopTask extends Task {
 	@Override
 	public void execute(double dt) {		
 		mp.update(flopPositionRevs, CoolMath.roundDigits(dt, 4));
-		double realPosition = encoderPulseRevs(sensors.getFlopEncoder());
+		double realPosition = encoderPulseRevs(sensors.getFlopEncoder()) + STARTING_REV;
 		double position = CoolMath.roundDigits(mp.position, 3);
 		double velocity = CoolMath.roundDigits(mp.velocity, 3);
 		double acceleration = mp.acceleration;
@@ -78,7 +78,7 @@ public class ControlFlopTask extends Task {
 		double signnum = Math.signum(currWantPos - lastWantedPos);
 		feedfoward = interpolateValues((kv * Math.abs(velWant) * signnum) + (ka * Math.abs(accWant) * signnum), feedfoward);
 		pidFlopMotor.setF(feedfoward);
-		double output = pidFlopMotor.getOutput(realPos, currWantPos) + feedfoward;
+		double output = pidFlopMotor.getOutput(realPos, currWantPos);
 
 		double angle = (realPos * 360);
 		double torque = Math.cos(Math.toRadians(angle)) * COEFFICENT_TORQUE_FEEDFOWARD; 
@@ -90,7 +90,7 @@ public class ControlFlopTask extends Task {
 		} else if(output < -1) {
 			output = -1;
 		}
-		
+
 		flopMech.RunFlopMotor(handleDeadband(output, 0.005));
 		SmartDashboard.putNumber("flop o", output);
 	}

@@ -73,20 +73,22 @@ public class Robot extends IterativeRobot {
 		mechanismMotors.SetupWinchMotors(11);
 		
 		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(10));
-		sensors.SetupEncoderFlop(mechanismMotors.SetupElevatorFlopMotor(1));
+		
+		mechanismMotors.SetupElevatorFlopMotor(1);
+		sensors.SetupEncoderFlop(6, 7);
 		
 		driveTrain.SetupProcedure(4, 5, 6, 
 								  7, 8, 9);
-		
+
 		//driveTrain.SetupShift(40, 0, 1);
 		driveTrain.setTalonsPWM_follow();
 		//driveTrain.setTalonsBrake();
 		
 		AutoPicker.setup();
-		//CameraSystem.startCamera();
+		CameraSystem.startCamera();
 
 		autoRoutine = new AutoPathRoutines(taskExecutor,
-				autoQuery, driveTrain, sensors, ahrs);
+				autoQuery, driveTrain, sensors, ahrs, mechanismMotors);
 	}
 
 	public void autonomousInit() {
@@ -121,8 +123,10 @@ public class Robot extends IterativeRobot {
 
 	public void teleopInit() {
 		sensors.resetDriveEncoders();
-		sensors.resetElevatorEncoder();
-		sensors.resetFlopEncoder();
+		
+		// in a real match, we do not want to zero in teleop
+		//sensors.resetElevatorEncoder();
+		//sensors.resetFlopEncoder();
 		
 		RobotLogger.toast("Teleop Init");
 		

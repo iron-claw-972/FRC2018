@@ -41,8 +41,6 @@ public class TeleopWinchTask extends Task {
 			output = 0;
 		}
 		
-		System.out.println(output);
-		
 		mechanismMotors.RunWinchMotor(output);
 	}
 }

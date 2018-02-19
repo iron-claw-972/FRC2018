@@ -20,10 +20,11 @@ public class TeleopElevatorTask extends Task {
 	double easingValue = 0.25;
 	final int elevatorAxisJoystick = 3;
 	final int elevatorOverrideButton = 6;
+	final int flopButton = 3;
 	
 	final double deadbandValue = 0.05;
 	
-	final double[] ELEVATOR_POSITIONS = {0, 1 * 12 * 0.0254, 2 * 12 * 0.0254, 3 * 12 * 0.0254};
+	final double[] ELEVATOR_POSITIONS = {0, 2 * 12 * 0.0254, 5 * 12 * 0.0254, 7 * 12 * 0.0254};
 	final int[] ELEVATOR_BUTTONS = {180, 270, 0, 90};
 	public static final double POINT_OF_BAR_HIT = 0.75;
 	
@@ -71,7 +72,17 @@ public class TeleopElevatorTask extends Task {
 			output = interpolateValues(0, output);
 			elevatorControl.setControl(true); //TODO: should we be true for real
 		}
-				
+		
+		if(joystickB.getRawButtonPressed(flopButton)) {
+			if(flopDown) {
+				flopControl.setFlopPositionTarget(0.05);
+				flopDown = false;
+			} else {
+				flopControl.setFlopPositionTarget(0.15);
+				flopDown = true;
+			}
+		}
+		
 		for(int i=0; i<ELEVATOR_BUTTONS.length; i++) {
 			if(joystickB.getPOV() == ELEVATOR_BUTTONS[i]) {
 				RobotLogger.toast("Setting Elevator Position to: " + ELEVATOR_POSITIONS[i]);
@@ -81,17 +92,10 @@ public class TeleopElevatorTask extends Task {
 			}
 		}
 		
-		if(joystickB.getRawButton(3)) {
-			flopControl.setFlopPositionTarget(0);
-			elevatorControl.setGoPastBar(true);
-		} else if(currentTarget > POINT_OF_BAR_HIT) {
+		if(currentTarget > POINT_OF_BAR_HIT) {
 			elevatorControl.setGoPastBar(true);
 			flopControl.setFlopPositionTarget(0);
-		} else if((currentTarget < POINT_OF_BAR_HIT) && elevatorControl.getPosition() < POINT_OF_BAR_HIT) { 
-			elevatorControl.setGoPastBar(false);
-			flopControl.setFlopPositionTarget(0.18);
-		} 
-		else {
+		} else {
 			elevatorControl.setGoPastBar(false);
 		}
 		

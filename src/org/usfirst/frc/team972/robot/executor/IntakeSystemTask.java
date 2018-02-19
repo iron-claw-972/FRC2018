@@ -63,13 +63,13 @@ public class IntakeSystemTask extends Task{
 		}
 		*/
 		
-// add this in && !sensors.getFrontIntakeSensorValue()
+		// add this in && !sensors.getFrontIntakeSensorValue()
 		if (activateIntakeMotors) {
-			intakeOutputPower = interpolateValues(-intakeMotorPower, intakeOutputPower);
-		} else if(reverseIntakeMotors) {
 			intakeOutputPower = interpolateValues(intakeMotorPower, intakeOutputPower);
+		} else if(reverseIntakeMotors) {
+			intakeOutputPower = interpolateValues(-intakeMotorPower, intakeOutputPower);
 		} else if(fireBlockSlow){
-			intakeOutputPower = interpolateValues(intakeSlowPower, intakeOutputPower);
+			intakeOutputPower = interpolateValues(-intakeSlowPower, intakeOutputPower);
 		} else {
 			intakeOutputPower = 0;
 		}
