@@ -16,14 +16,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class TrajectoryExecutionTask extends Task {
 
-	final double POWER_MULTIPLIER = .5; //ideally should be one
+	final double POWER_MULTIPLIER = .75; //ideally should be one
 	
-	double kp = 0.35;
+	double kp = 0.55;
 	double ki = 0.005;
 	double kd = 0.01;
 
 	double ka = 0.125;
-	double kv = 1 / 1.4;
+	double kv = 1 / 1.6;
 
 	double lastAngleDesired = 0;
 	double saturatedLimit = 0.5;
@@ -32,7 +32,7 @@ public class TrajectoryExecutionTask extends Task {
 
 	AHRS ahrs;
 	MainDriveTrain driveTrain = new MainDriveTrain();
-	PIDControl headingPid = new PIDControl(0.118, 0.0, 0.5);
+	PIDControl headingPid = new PIDControl(0.3, 0.005, 1);
 
 	double beginCalibrationAngle = 0;
 	
@@ -76,7 +76,7 @@ public class TrajectoryExecutionTask extends Task {
 		leftError = 0;
 		rightError = 0;
 		
-		headingPid.setOutputLimits(-0.1, 0.1);
+		headingPid.setOutputLimits(-0.2, 0.2);
 		headingPid.setOutputFilter(0.05);
 		headingPid.setSetpointRange(1);
 
@@ -114,8 +114,8 @@ public class TrajectoryExecutionTask extends Task {
 		if(finished == false ) {
 			double realDt = Math.max(dt - lastTime, (double) 1000 / Robot.REAL_TIME_LOOP_HZ / 1000);
 	
-			double leftRealDist = -driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoder());
-			double rightRealDist = driveTrain.pulseToMetersLinear(sensors.getRightDriveEncoder());
+			double leftRealDist = driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoder());
+			double rightRealDist = -driveTrain.pulseToMetersLinear(sensors.getRightDriveEncoder());
 
 			double leftError = desiredLeftPos - leftRealDist;
 			double rightError = desiredRightPos - rightRealDist;
@@ -136,6 +136,8 @@ public class TrajectoryExecutionTask extends Task {
 			
 			SmartDashboard.putNumber("currentAngle", currentAngle);
 			SmartDashboard.putNumber("desiredAngle", desiredAngle);
+			
+			SmartDashboard.putNumber("left speed real", driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoderSpeed()));
 			
 			if (Math.abs(lo) <= saturatedLimit) {
 				leftErrorSum += leftError * realDt;
@@ -190,6 +192,9 @@ public class TrajectoryExecutionTask extends Task {
 		desiredRightAcc = f;
 
 		desiredAngle = (_ang/Math.PI) * 180;
+		if(desiredAngle > 180) {
+			desiredAngle = desiredAngle - 360;
+		}
 
 		finished = _finished;
 	}

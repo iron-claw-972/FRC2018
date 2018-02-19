@@ -2,6 +2,7 @@ package org.usfirst.frc.team972.robot.executor.auto;
 
 import org.usfirst.frc.team972.robot.RobotLogger;
 import org.usfirst.frc.team972.robot.executor.Task;
+import org.usfirst.frc.team972.robot.executor.TeleopElevatorTask;
 import org.usfirst.frc.team972.robot.motionlib.CoolMath;
 import org.usfirst.frc.team972.robot.motionlib.PIDControl;
 import org.usfirst.frc.team972.robot.motionlib.TrapezoidalMotionProfile;
@@ -14,6 +15,8 @@ public class ControlElevatorTask extends Task {
 
 	boolean allowedControl = false;
 	boolean setPositionOnce = false;
+	
+	boolean goingUpPastBar = false;
 	
 	double feedfoward = 0;
 	double easingValue = 0.9;
@@ -28,15 +31,18 @@ public class ControlElevatorTask extends Task {
 	final double GEARBOX_RATIO = 36;
 	
 	MechanismActuators elevatorMech;
-	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.425, 1);
+	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.3, 0.5);
+	
+	ControlFlopTask flopControl;
 	
 	Sensors sensors;
 	
 	double elevatorPositionTarget = 0;
 	
-	public ControlElevatorTask(double _executionTime, MechanismActuators _elevatorMech, Sensors _sensors) {
+	public ControlElevatorTask(double _executionTime, MechanismActuators _elevatorMech, Sensors _sensors, ControlFlopTask _flopControl) {
 		super(_executionTime);
 		elevatorMech = _elevatorMech;
+		flopControl = _flopControl;
 		sensors = _sensors;
 		// TODO Auto-generated constructor stub
 	}
@@ -94,12 +100,24 @@ public class ControlElevatorTask extends Task {
 	
 	private boolean checkElevatorSafety(double position, double velocity) {
 		//TODO: write elevator bound  checking so we dont break the mechanism
-		if(position > 2.1) {
-			RobotLogger.toast("Elevator Safety Tripped: " + position, RobotLogger.URGENT);
+		if((position > TeleopElevatorTask.POINT_OF_BAR_HIT) && (goingUpPastBar) && (flopControl.isDown() == false))
+		{
+			RobotLogger.toast("Elevator Safety Tripped, Bar Movment Up: " + position, RobotLogger.URGENT);
+			return false;
+		} else if(position > 2.1) {
+			RobotLogger.toast("Elevator Safety Tripped, Max Height: " + position, RobotLogger.URGENT);
 			return false;
 		} else {
 			return true;
 		}
+	}
+	
+	public double getPosition() {
+		return calculatePositionMeters(encoderPulseToRadians(sensors.getElevatorEncoder()));
+	}
+	
+	public void setGoPastBar(boolean val) {
+		goingUpPastBar = val;
 	}
 	
 	private void executePid(double velWant, double accWant, double realPos, double currWantPos, double finalWant) {

@@ -12,6 +12,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ControlFlopTask extends Task {
 
+	final double DOWN_MINIMUM = 0.05;
+	
+	final double COEFFICENT_TORQUE_FEEDFOWARD = 0.325;
+	
 	boolean allowedControl = false;
 	boolean setPositionOnce = false;
 	
@@ -19,15 +23,15 @@ public class ControlFlopTask extends Task {
 	double easingValue = 0.9;
 	double lastWantedPos = 0;
 	
-	PIDControl pidFlopMotor = new PIDControl(15, 0.01, 0.025);
+	PIDControl pidFlopMotor = new PIDControl(15, 0.0005, 0);
 	
 	double ka = 0.005;
-	double kv = (double)1.5;
+	double kv = (double)5.5;
 
-	final double GEARBOX_RATIO = 90;
+	final double GEARBOX_RATIO = 79.5;
 	
 	MechanismActuators flopMech;
-	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.25, 0.25);
+	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.15, 0.15);
 	
 	Sensors sensors;
 	
@@ -39,7 +43,6 @@ public class ControlFlopTask extends Task {
 		sensors = _sensors;
 	}
 
-
 	private double encoderPulseRevs(int pulse) {
 		double rev = (double)pulse/(double)4096/GEARBOX_RATIO;
 		return rev;
@@ -47,10 +50,10 @@ public class ControlFlopTask extends Task {
 	
 	@Override
 	public void init(double dt) {
-		pidFlopMotor.setOutputLimits(-1, 1);
+		pidFlopMotor.setOutputLimits(-0.6, 0.6);
 	}
 
-	public void setElevatorPositionTarget(double target) {
+	public void setFlopPositionTarget(double target) {
 		flopPositionRevs = target;
 	}
 	
@@ -62,7 +65,8 @@ public class ControlFlopTask extends Task {
 		double velocity = CoolMath.roundDigits(mp.velocity, 3);
 		double acceleration = mp.acceleration;
 		
-		RobotLogger.toast("flop pos: " + realPosition);
+		SmartDashboard.putNumber("flop want", position);
+		SmartDashboard.putNumber("flop pos", realPosition);
 		
 		executePid(velocity, acceleration, realPosition, position);
 		
@@ -76,8 +80,19 @@ public class ControlFlopTask extends Task {
 		pidFlopMotor.setF(feedfoward);
 		double output = pidFlopMotor.getOutput(realPos, currWantPos) + feedfoward;
 
-		flopMech.RunFlopMotor(handleDeadband(output, 0.025));
-		RobotLogger.toast("flop o: "+ output);
+		double angle = (realPos * 360);
+		double torque = Math.cos(Math.toRadians(angle)) * COEFFICENT_TORQUE_FEEDFOWARD; 
+		
+		output = output + torque;
+		
+		if(output > 1) {
+			output = 1;
+		} else if(output < -1) {
+			output = -1;
+		}
+		
+		flopMech.RunFlopMotor(handleDeadband(output, 0.005));
+		SmartDashboard.putNumber("flop o", output);
 	}
 	
 	private double interpolateValues(double want, double actual) {
@@ -88,8 +103,21 @@ public class ControlFlopTask extends Task {
 	public void setControl(boolean control) {
 		allowedControl = control;
 	}
+	
+	public double getFlopCurrentPos() {
+		return encoderPulseRevs(sensors.getFlopEncoder());
+	}
 
     public double handleDeadband(double val, double deadband) {
         return (Math.abs(val) > Math.abs(deadband)) ? val : 0.0;
     }
+
+	public boolean isDown() {
+		//readibility
+		if(getFlopCurrentPos() < DOWN_MINIMUM) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }

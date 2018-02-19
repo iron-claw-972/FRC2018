@@ -9,7 +9,7 @@ public class TrapezoidalMotionProfile {
   public double velocity = 0;
   private double oldVelocity = 0;
   public double acceleration = 0;
-  private double lastTime = -1; //start at -1 so we dont have weird timing calc error
+  private double lastTime = -0.01; //start at -1 so we dont have weird timing calc error
   private double delta = 0;
   
   public TrapezoidalMotionProfile(double _maxVelocity, double _maxAcceleration) {

@@ -54,6 +54,10 @@ public class Sensors {
 		return leftSideEncoderDriveTrain.get();
 	}
 	
+	public int getLeftDriveEncoderSpeed() {
+		return (int)leftSideEncoderDriveTrain.getRate();
+	}
+	
 	public int getRightDriveEncoder() {
 		return rightSideEncoderDriveTrain.get();
 	}

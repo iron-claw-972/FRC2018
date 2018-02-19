@@ -13,7 +13,7 @@ public class IntakeSystemTask extends Task{
 	UserInputGamepad uig;
 	Sensors sensors;
 	double intakeMotorPower = 0.5;
-	double intakeHoldPower = 0.05;
+	double intakeHoldPower = 0.1;
 	
 	boolean activateIntakeMotors;
 	boolean reverseIntakeMotors;
@@ -53,8 +53,8 @@ public class IntakeSystemTask extends Task{
 		}
 		*/
 		
-
-		if (activateIntakeMotors && !sensors.getFrontIntakeSensorValue()) {
+// add this in && !sensors.getFrontIntakeSensorValue()
+		if (activateIntakeMotors) {
 			mechanismMotors.RunIntakeMotors(-intakeMotorPower);
 		} else if(reverseIntakeMotors) {
 			mechanismMotors.RunIntakeMotors(intakeMotorPower);

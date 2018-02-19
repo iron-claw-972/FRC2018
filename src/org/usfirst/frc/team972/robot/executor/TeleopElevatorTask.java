@@ -15,16 +15,20 @@ public class TeleopElevatorTask extends Task {
 	ControlElevatorTask elevatorControl;
 	ControlFlopTask flopControl;
 	
+	boolean flopDown = true;
+	
 	double easingValue = 0.25;
 	final int elevatorAxisJoystick = 3;
 	final int elevatorOverrideButton = 6;
 	
 	final double deadbandValue = 0.05;
 	
-	final double[] ELEVATOR_POSITIONS = {0, 1 * 12 * 0.0254, 5 * 12 * 0.0254, 7 * 12 * 0.0254};
+	final double[] ELEVATOR_POSITIONS = {0, 1 * 12 * 0.0254, 2 * 12 * 0.0254, 3 * 12 * 0.0254};
 	final int[] ELEVATOR_BUTTONS = {180, 270, 0, 90};
+	public static final double POINT_OF_BAR_HIT = 0.75;
 	
 	double output = 0;
+	double currentTarget = 0;
 	
 	public TeleopElevatorTask(double _executionTime, UserInputGamepad _uig, MechanismActuators _mechanismMotors, ControlElevatorTask _elevatorControl, ControlFlopTask _flopControl) {
 		super(_executionTime);
@@ -67,22 +71,30 @@ public class TeleopElevatorTask extends Task {
 			output = interpolateValues(0, output);
 			elevatorControl.setControl(true); //TODO: should we be true for real
 		}
-		
-		if(joystickB.getRawButton(3)) {
-			RobotLogger.toast("manual elevator");
-			flopControl.setElevatorPositionTarget(0.1);
-		}
-		
+				
 		for(int i=0; i<ELEVATOR_BUTTONS.length; i++) {
 			if(joystickB.getPOV() == ELEVATOR_BUTTONS[i]) {
 				RobotLogger.toast("Setting Elevator Position to: " + ELEVATOR_POSITIONS[i]);
-				elevatorControl.setElevatorPositionTarget((float)ELEVATOR_POSITIONS[i]);
+				elevatorControl.setElevatorPositionTarget(ELEVATOR_POSITIONS[i]);
+				currentTarget = ELEVATOR_POSITIONS[i];
 				break;
 			}
 		}
 		
+		if(joystickB.getRawButton(3)) {
+			flopControl.setFlopPositionTarget(0);
+			elevatorControl.setGoPastBar(true);
+		} else if(currentTarget > POINT_OF_BAR_HIT) {
+			elevatorControl.setGoPastBar(true);
+			flopControl.setFlopPositionTarget(0);
+		} else if((currentTarget < POINT_OF_BAR_HIT) && elevatorControl.getPosition() < POINT_OF_BAR_HIT) { 
+			elevatorControl.setGoPastBar(false);
+			flopControl.setFlopPositionTarget(0.18);
+		} 
+		else {
+			elevatorControl.setGoPastBar(false);
+		}
 		
-	
 	}
 	
 	public void setEnable() {

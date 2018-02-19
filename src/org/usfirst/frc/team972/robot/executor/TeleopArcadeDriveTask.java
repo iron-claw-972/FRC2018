@@ -108,6 +108,8 @@ public class TeleopArcadeDriveTask extends Task {
 		throttle = handleDeadband(throttle, 0.05);
 		steer_set = handleDeadband(steer_set, 0.05);
 
+		SmartDashboard.putNumber("left speed real", driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoderSpeed()));
+		
 		if(steer_set == 0) {
 			if(calibratingAngle) {
 				fakeDesiredAngle = ahrs.getAngle();

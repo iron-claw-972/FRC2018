@@ -12,7 +12,7 @@ public class TeleopWinchTask extends Task {
 	MechanismActuators mechanismMotors;
 	
 	final int winchAxisJoystick = 1;
-	final int winchButton = 3; 
+	final int winchButton = 6; 
 	final double deadbandValue = 0.05;
 	double output = 0;
 	
@@ -40,6 +40,8 @@ public class TeleopWinchTask extends Task {
 		} else {
 			output = 0;
 		}
+		
+		System.out.println(output);
 		
 		mechanismMotors.RunWinchMotor(output);
 	}

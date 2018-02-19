@@ -43,7 +43,7 @@ public class MechanismActuators {
 	
 	public void RunIntakeMotors(double power) {
 		intakeMotorLeft.set(-power);
-		intakeMotorRight.set(-power);
+		intakeMotorRight.set(power);
 	}
 	
 	public void RunWinchMotor(double power) {
