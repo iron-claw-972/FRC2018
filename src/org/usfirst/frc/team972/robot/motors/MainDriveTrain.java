@@ -107,19 +107,19 @@ public class MainDriveTrain {
 	}
 	
 	public void shiftSolenoidUp() {
-		/*
+		
 		ShiftSolenoid.set(DoubleSolenoid.Value.kReverse);
 		RobotLogger.toast("DriveTrain Shift Up");
 		SmartDashboard.putString("Gear Mode", "high gear");
-		*/
+		
 	}
 	
 	public void shiftSolenoidDown() {
-		/*
+		
 		ShiftSolenoid.set(DoubleSolenoid.Value.kForward);
 		RobotLogger.toast("DriveTrain Shift Down");
 		SmartDashboard.putString("Gear Mode", "low gear");
-		*/
+		
 	}
 	
 	public void setTalonsPWM_follow() {

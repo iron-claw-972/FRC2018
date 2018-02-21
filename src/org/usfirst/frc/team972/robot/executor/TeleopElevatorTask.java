@@ -72,8 +72,13 @@ public class TeleopElevatorTask extends Task {
 			output = interpolateValues(0, output);
 			elevatorControl.setControl(true); //TODO: should we be true for real
 		}
-		
-		if(joystickB.getRawButtonPressed(flopButton)) {
+	
+		if(Math.abs(joystickB.getRawAxis(0)) > 0.05) {
+			flopControl.setControl(false);
+			mechanismMotors.RunFlopMotor(joystickB.getRawAxis(0));
+		} else if(joystickB.getRawButtonPressed(flopButton)) {
+			flopControl.setFlopPositionTarget(flopControl.getFlopCurrentPos());
+			flopControl.setControl(true);
 			if(flopDown) {
 				flopControl.setFlopPositionTarget(0.05);
 				flopDown = false;
@@ -81,6 +86,8 @@ public class TeleopElevatorTask extends Task {
 				flopControl.setFlopPositionTarget(0.15);
 				flopDown = true;
 			}
+		} else {
+			mechanismMotors.RunFlopMotor(0);
 		}
 		
 		for(int i=0; i<ELEVATOR_BUTTONS.length; i++) {

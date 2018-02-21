@@ -92,6 +92,7 @@ public class TeleopArcadeDriveTask extends Task {
 		}
 		
 		if(uig.getStickA().getRawButtonPressed(SHIFT_BUTTON)) {
+			currentSpeedMode = 0;
 			if(driveGearMode == 0) {
 				driveGearMode = 1; //do high gear
 				driveTrain.shiftSolenoidUp();

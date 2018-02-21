@@ -68,19 +68,19 @@ public class Robot extends IterativeRobot {
 		sensors.SetupEncoderDriveTrain(2, 3, 0, 1);
 		
 		sensors.SetupIntakeSensors(5);
-		mechanismMotors.SetupIntakeMotors(2, 3);
+		mechanismMotors.SetupIntakeMotors(2, 3); // left, right
 		
-		mechanismMotors.SetupWinchMotors(11);
+		mechanismMotors.SetupWinchMotors(11); // motor 11
 		
 		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(10));
 		
-		mechanismMotors.SetupElevatorFlopMotor(1);
+		mechanismMotors.SetupElevatorFlopMotor(1); // motor 1
 		sensors.SetupEncoderFlop(6, 7);
 		
 		driveTrain.SetupProcedure(4, 5, 6, 
 								  7, 8, 9);
 
-		//driveTrain.SetupShift(40, 0, 1);
+		driveTrain.SetupShift(40, 0, 1);
 		driveTrain.setTalonsPWM_follow();
 		//driveTrain.setTalonsBrake();
 		

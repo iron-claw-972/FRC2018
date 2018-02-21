@@ -91,7 +91,7 @@ public class ControlFlopTask extends Task {
 			output = -1;
 		}
 
-		flopMech.RunFlopMotor(handleDeadband(output, 0.005));
+		//flopMech.RunFlopMotor(handleDeadband(output, 0.005));
 		SmartDashboard.putNumber("flop o", output);
 	}
 	

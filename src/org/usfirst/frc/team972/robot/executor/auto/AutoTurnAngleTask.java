@@ -11,11 +11,11 @@ public class AutoTurnAngleTask extends Task {
 	
 	double goalAngle;
 	double maxTime;
-	double feedFowardOffRange = 15;
-	double feedFowardPower = 0.3;
+	double feedFowardOffRange = 10;
+	double feedFowardPower = 0.6;
 	double errorRange = 1;
 	
-	double inTheZoneMax = 200;
+	double inTheZoneMax = 50;
 	
 	AHRS ahrs;
 	MainDriveTrain mdt;
@@ -49,6 +49,7 @@ public class AutoTurnAngleTask extends Task {
 				if(inTheZone > inTheZoneMax) {
 					RobotLogger.toast("Auto Turn Angle Finished with Error of: " + error);
 					mdt.stopHard();
+					mdt.driveSidesPWM(0, 0);
 					super.free();
 					super.destroy();
 				}
@@ -62,9 +63,9 @@ public class AutoTurnAngleTask extends Task {
 	}
 
 	public void init(double dt) {
-		pid = new PIDControl(0.125, 0.0005, 0.5);
+		pid = new PIDControl(0.6, 0.0005, 0.5);
 		pid.setMaxIOutput(0.15);
-		pid.setOutputLimits(-0.2, 0.2);
+		pid.setOutputLimits(-0.3, 0.3);
 		pid.setOutputRampRate(0.005);
 		pid.setSetpointRange(errorRange);
 		realStartTime = dt;
