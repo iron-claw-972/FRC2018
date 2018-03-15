@@ -22,16 +22,18 @@ public class ControlElevatorTask extends Task {
 	double easingValue = 0.9;
 	double lastWantedPos = 0;
 	
-	PIDControl pidRightWinch = new PIDControl(0.9, 0.005, 0.025);
+	double weightFeedFoward = 0.0;
 	
-	double ka = 0.005;
-	double kv = (double)1/.42;
+	PIDControl pidRightWinch = new PIDControl(3, 0.005, 0.025);
+	
+	double ka = 0.05;
+	double kv = (double)1/2;
 
-	final double DIAMETER_ELEVATOR_WINCH = 0.023495; // meters, not accounting for cord windup radius.
+	final double DIAMETER_ELEVATOR_WINCH = 0.05588; // meters, not accounting for cord windup radius.
 	final double GEARBOX_RATIO = 36;
 	
 	MechanismActuators elevatorMech;
-	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.3, 0.5);
+	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.9, 2.1);
 	
 	ControlFlopTask flopControl;
 	
@@ -72,10 +74,10 @@ public class ControlElevatorTask extends Task {
 	@Override
 	public void execute(double dt) {		
 		mp.update(elevatorPositionTarget, CoolMath.roundDigits(dt, 4));
-		double realPosition = calculatePositionMeters(encoderPulseToRadians(sensors.getElevatorEncoder()));
+		double realPosition = calculatePositionMeters(encoderPulseToRadians(-sensors.getElevatorEncoder()));
 		double position = CoolMath.roundDigits(mp.position, 3);
 		double velocity = CoolMath.roundDigits(mp.velocity, 3);
-		double acceleration = mp.acceleration;
+		double acceleration = CoolMath.roundDigits(mp.acceleration, 3);
 		
 		SmartDashboard.putNumber("elevator real pos: ", realPosition);
 		SmartDashboard.putNumber("elevator curr target: ", position);
@@ -88,7 +90,12 @@ public class ControlElevatorTask extends Task {
 		}
 		
 		if(checkElevatorSafety(realPosition, velocity) && allowedControl) {
-			executePid(velocity, acceleration, realPosition, position, elevatorPositionTarget);
+			if((position < 0.06) && (realPosition < 0.05)) {
+				elevatorMech.RunElevatorLiftMotor(0);
+				pidRightWinch.reset();
+			} else {
+				executePid(velocity, acceleration, realPosition, position, elevatorPositionTarget);
+			}
 		} else {
 			if(allowedControl) {
 				elevatorMech.RunElevatorLiftMotor(0);
@@ -104,8 +111,9 @@ public class ControlElevatorTask extends Task {
 		{
 			RobotLogger.toast("Elevator Safety Tripped, Bar Movment Up: " + position, RobotLogger.URGENT);
 			return false;
-		} else if(position > 2.1) {
+		} else if(position > 1) {
 			RobotLogger.toast("Elevator Safety Tripped, Max Height: " + position, RobotLogger.URGENT);
+			//elevatorMech.RunElevatorLiftMotor(0.05);
 			return false;
 		} else {
 			return true;
@@ -129,11 +137,13 @@ public class ControlElevatorTask extends Task {
 		double signnum = Math.signum(currWantPos - lastWantedPos);
 		feedfoward = interpolateValues((kv * Math.abs(velWant) * signnum) + (ka * Math.abs(accWant) * signnum), feedfoward);
 		pidRightWinch.setF(feedfoward);
-		double output = pidRightWinch.getOutput(realPos, currWantPos) + feedfoward;
+		double output = pidRightWinch.getOutput(realPos, currWantPos) + feedfoward + weightFeedFoward;
 		
 		SmartDashboard.putNumber("elevator ff", feedfoward);
+		SmartDashboard.putNumber("ff vel", (kv * Math.abs(velWant) * signnum));
+		SmartDashboard.putNumber("ff acc", (ka * accWant));
 		
-		elevatorMech.RunElevatorLiftMotor(handleDeadband(output, 0.05));
+		elevatorMech.RunElevatorLiftMotor(-handleDeadband(output, 0.05));
 	}
 	
 	private double interpolateValues(double want, double actual) {

@@ -53,6 +53,11 @@ public class MechanismActuators {
 	}
 	
 	public void RunElevatorLiftMotor(double power) {
+		if(power > 1) {
+			power = 0.9;
+		} else if(power < -1) {
+			power = -1;
+		}
 		SmartDashboard.putNumber("elevator output", power);
 		elevatorLiftMotor.set(power);
 	}

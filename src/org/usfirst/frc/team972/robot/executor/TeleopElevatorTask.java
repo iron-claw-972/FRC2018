@@ -24,7 +24,7 @@ public class TeleopElevatorTask extends Task {
 	
 	final double deadbandValue = 0.05;
 	
-	final double[] ELEVATOR_POSITIONS = {0, 2 * 12 * 0.0254, 5 * 12 * 0.0254, 7 * 12 * 0.0254};
+	final double[] ELEVATOR_POSITIONS = {0.05, 0.2, 0.5, 0.9};
 	final int[] ELEVATOR_BUTTONS = {180, 270, 0, 90};
 	public static final double POINT_OF_BAR_HIT = 0.75;
 	

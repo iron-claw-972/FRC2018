@@ -61,6 +61,7 @@ public class Robot extends IterativeRobot {
 	double realStartTime = 0;
 
 	public void robotInit() {
+		
 		RobotLogger.toast("Robot Init");
 		
 		autoQuery = new AutoQuery();
@@ -82,13 +83,19 @@ public class Robot extends IterativeRobot {
 
 		driveTrain.SetupShift(40, 0, 1);
 		driveTrain.setTalonsPWM_follow();
-		//driveTrain.setTalonsBrake();
 		
 		AutoPicker.setup();
 		CameraSystem.startCamera();
 
 		autoRoutine = new AutoPathRoutines(taskExecutor,
 				autoQuery, driveTrain, sensors, ahrs, mechanismMotors);
+				
+	
+		/*//elevator testing code
+		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(1));
+		mechanismMotors.SetupElevatorFlopMotor(3);
+		sensors.SetupEncoderFlop(6, 7);
+		*/
 	}
 
 	public void autonomousInit() {
@@ -130,16 +137,14 @@ public class Robot extends IterativeRobot {
 		
 		RobotLogger.toast("Teleop Init");
 		
-		new Compressor(40).start();
+		//new Compressor(40).start();
 		
-		driveTrain.setTalonsPWM_follow();
-		driveTrain.diagnosis();
-		driveTrain.shiftSolenoidDown();
+		//driveTrain.setTalonsPWM_follow();
+		//driveTrain.diagnosis();
+		//driveTrain.shiftSolenoidDown();
 
-		sensors.resetDriveEncoder();
-		
-		ahrs.reset();
-		ahrs.resetDisplacement();
+		//ahrs.reset();
+		//ahrs.resetDisplacement();
 		
 		ControlFlopTask flopControl = new ControlFlopTask(0, mechanismMotors, sensors);
 		ControlElevatorTask elevatorControl = new ControlElevatorTask(0, mechanismMotors, sensors, flopControl);
@@ -147,12 +152,12 @@ public class Robot extends IterativeRobot {
 		elevatorControl.realtimeTask = true;
 		flopControl.realtimeTask = true;
 		
-		taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
+		//taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
 		taskExecutor.addTask(new TeleopElevatorTask(0, uig, mechanismMotors, elevatorControl, flopControl));
 		taskExecutor.addTask(elevatorControl);
-		taskExecutor.addTask(flopControl);
-		taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
-		taskExecutor.addTask(new TeleopWinchTask(0, uig, mechanismMotors));
+		//taskExecutor.addTask(flopControl);
+		//taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
+		//taskExecutor.addTask(new TeleopWinchTask(0, uig, mechanismMotors));
 		taskExecutor.teleopStart();
 		
 		realStartTime = Timer.getFPGATimestamp();
@@ -163,7 +168,7 @@ public class Robot extends IterativeRobot {
 	public void disabledPeriodic() {
 		taskExecutor.stop();
 		taskExecutor.forceClearTasks();
-		driveTrain.stopCoast();
+		//driveTrain.stopCoast();
 	}
 	
 	public void teleopPeriodic() {
@@ -199,6 +204,10 @@ public class Robot extends IterativeRobot {
 			}
 		}
 		taskExecutor.stop();
+	}
+	
+	public void testInit() {
+		
 	}
 	
 	public void testPeriodic() {
