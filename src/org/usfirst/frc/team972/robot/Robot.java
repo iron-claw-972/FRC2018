@@ -1,3 +1,22 @@
+/*  _____ _____   ____  _   _  _____ _          __          __            ___ ______ ___  
+ |_   _|  __ \ / __ \| \ | |/ ____| |        /\ \        / /           / _ \____  |__ \ 
+   | | | |__) | |  | |  \| | |    | |       /  \ \  /\  / /   ______  | (_) |  / /   ) |
+   | | |  _  /| |  | | . ` | |    | |      / /\ \ \/  \/ /   |______|  \__, | / /   / / 
+  _| |_| | \ \| |__| | |\  | |____| |____ / ____ \  /\  /                / / / /   / /_ 
+ |_____|_|_ \_\\____/|_| \_|\_____|______/_/____\_\/__\/ ______         /_/ /_/   |____|
+ |__ \ / _ \/_ |/ _ \                / ____/ __ \|  __ \|  ____|                        
+    ) | | | || | (_) |              | |   | |  | | |  | | |__                           
+   / /| | | || |> _ <               | |   | |  | | |  | |  __|                          
+  / /_| |_| || | (_) |   _   _   _  | |___| |__| | |__| | |____                         
+ |____|\___/ |_|\___/   (_) (_) (_)  \_____\____/|_____/|______|                        
+                                                                                        
+                  written by the IronClaw Programming Team for 2018 FIRST FRC Game: Power Up
+				  -- precomp revision finalized (3/14/2018 @ 7:29 PM PST)
+				  -- precomp revision 2.0 finalized (3/14/2018 @ 7:36 PM PST)
+				  -- final git push precomp @ 7:37 PM PST
+ */
+
+
 package org.usfirst.frc.team972.robot;
 
 import org.usfirst.frc.team972.robot.executor.IntakeSystemTask;
@@ -59,9 +78,12 @@ public class Robot extends IterativeRobot {
 	
 	boolean firstTimeTeleop = false;
 	double realStartTime = 0;
-
+	double lastTime = 0;
+	
+	long controlLoopCycle = 0;
+	long moduloUpdateCycle = 200;
+	
 	public void robotInit() {
-		
 		RobotLogger.toast("Robot Init");
 		
 		autoQuery = new AutoQuery();
@@ -91,7 +113,7 @@ public class Robot extends IterativeRobot {
 				autoQuery, driveTrain, sensors, ahrs, mechanismMotors);
 				
 	
-		/*//elevator testing code
+		/*//elevator testing code!!!
 		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(1));
 		mechanismMotors.SetupElevatorFlopMotor(3);
 		sensors.SetupEncoderFlop(6, 7);
@@ -137,14 +159,14 @@ public class Robot extends IterativeRobot {
 		
 		RobotLogger.toast("Teleop Init");
 		
-		//new Compressor(40).start();
+		new Compressor(40).start();
 		
-		//driveTrain.setTalonsPWM_follow();
-		//driveTrain.diagnosis();
-		//driveTrain.shiftSolenoidDown();
+		driveTrain.setTalonsPWM_follow();
+		driveTrain.diagnosis();
+		driveTrain.shiftSolenoidDown();
 
-		//ahrs.reset();
-		//ahrs.resetDisplacement();
+		ahrs.reset();
+		ahrs.resetDisplacement();
 		
 		ControlFlopTask flopControl = new ControlFlopTask(0, mechanismMotors, sensors);
 		ControlElevatorTask elevatorControl = new ControlElevatorTask(0, mechanismMotors, sensors, flopControl);
@@ -152,12 +174,12 @@ public class Robot extends IterativeRobot {
 		elevatorControl.realtimeTask = true;
 		flopControl.realtimeTask = true;
 		
-		//taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
+		taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
 		taskExecutor.addTask(new TeleopElevatorTask(0, uig, mechanismMotors, elevatorControl, flopControl));
 		taskExecutor.addTask(elevatorControl);
-		//taskExecutor.addTask(flopControl);
-		//taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
-		//taskExecutor.addTask(new TeleopWinchTask(0, uig, mechanismMotors));
+		taskExecutor.addTask(flopControl);
+		taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
+		taskExecutor.addTask(new TeleopWinchTask(0, uig, mechanismMotors));
 		taskExecutor.teleopStart();
 		
 		realStartTime = Timer.getFPGATimestamp();
@@ -168,14 +190,25 @@ public class Robot extends IterativeRobot {
 	public void disabledPeriodic() {
 		taskExecutor.stop();
 		taskExecutor.forceClearTasks();
-		//driveTrain.stopCoast();
+		driveTrain.stopCoast();
+		controlLoopCycle = 0;
 	}
 	
 	public void teleopPeriodic() {
 		//do nothing
 	}
 	
+	public void updateLoopStat(double current_time) {
+		if(controlLoopCycle % moduloUpdateCycle == 1) {
+			SmartDashboard.putNumber("control loop delta", current_time - lastTime);
+		}
+		
+		lastTime = current_time;
+		controlLoopCycle++;
+	}
+	
 	public void autoRealTimeControlLoop() {
+		RobotLogger.toast("Control Loop (Autonomous) Starting");
 		while (this.isEnabled() && this.isAutonomous()) {
 			double current_time = Timer.getFPGATimestamp() - realStartTime;
 			taskExecutor.executeDT(current_time, false); //dont care about realtime locks, just run at full speed
@@ -184,11 +217,14 @@ public class Robot extends IterativeRobot {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
+			updateLoopStat(current_time);
 		}
 		taskExecutor.stop();
 	}
 
 	public void teleopRealTimeController() {
+		RobotLogger.toast("Control Loop (Teleop) Starting");
 		while (this.isEnabled() && this.isOperatorControl()) {
 			double current_time = Timer.getFPGATimestamp() - realStartTime;
 			if(this.isNewDataAvailable()) {
@@ -202,12 +238,18 @@ public class Robot extends IterativeRobot {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
+			updateLoopStat(current_time);
 		}
 		taskExecutor.stop();
 	}
 	
 	public void testInit() {
-		
+		RobotLogger.toast("Test Mode Run: Begin Zero!");
+		sensors.resetDriveEncoders();
+		sensors.resetElevatorEncoder();
+		sensors.resetFlopEncoder();
+		RobotLogger.toast("Zeroed!");
 	}
 	
 	public void testPeriodic() {

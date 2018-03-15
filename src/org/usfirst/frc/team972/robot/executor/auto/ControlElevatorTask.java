@@ -24,6 +24,8 @@ public class ControlElevatorTask extends Task {
 	
 	double weightFeedFoward = 0.0;
 	
+	double maxHeight = 1;
+	
 	PIDControl pidRightWinch = new PIDControl(3, 0.005, 0.025);
 	
 	double ka = 0.05;
@@ -106,12 +108,7 @@ public class ControlElevatorTask extends Task {
 	}
 	
 	private boolean checkElevatorSafety(double position, double velocity) {
-		//TODO: write elevator bound  checking so we dont break the mechanism
-		if((position > TeleopElevatorTask.POINT_OF_BAR_HIT) && (goingUpPastBar) && (flopControl.isDown() == false))
-		{
-			RobotLogger.toast("Elevator Safety Tripped, Bar Movment Up: " + position, RobotLogger.URGENT);
-			return false;
-		} else if(position > 1) {
+		if(position > maxHeight) {
 			RobotLogger.toast("Elevator Safety Tripped, Max Height: " + position, RobotLogger.URGENT);
 			//elevatorMech.RunElevatorLiftMotor(0.05);
 			return false;
@@ -134,6 +131,7 @@ public class ControlElevatorTask extends Task {
 		if((output > 1) || (output < -1)) {
 			output = Math.signum(output);
 		}*/
+		
 		double signnum = Math.signum(currWantPos - lastWantedPos);
 		feedfoward = interpolateValues((kv * Math.abs(velWant) * signnum) + (ka * Math.abs(accWant) * signnum), feedfoward);
 		pidRightWinch.setF(feedfoward);

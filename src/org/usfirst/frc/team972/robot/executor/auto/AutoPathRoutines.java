@@ -22,7 +22,8 @@ public class AutoPathRoutines {
 	AHRS ahrs;
 	MechanismActuators mechanismMotors;
 	
-	final double SWITCH_AUTO_HEIGHT = 4 * 12 * 0.0254;
+	final double SWITCH_AUTO_HEIGHT = 0.4;
+	final double SCALE_AUTO_HEIGHT = 0.9;
 	
 	public AutoPathRoutines(TaskExecutor _taskExecutor, AutoQuery _autoQuery, MainDriveTrain _driveTrain, Sensors _sensors, AHRS _ahrs, MechanismActuators _mechanismMotors) {
 		taskExecutor = _taskExecutor;
@@ -46,30 +47,38 @@ public class AutoPathRoutines {
 		
 		switch(selectedFile) {
 			case "right_to_right_switch": // -- switches --
+				flopControl.setDown();
 				elevatorControl.setElevatorPositionTarget(SWITCH_AUTO_HEIGHT);
 				performTraj(selectedFile);
 				taskExecutor.addTask(new AutoIntakeMechanism(0, 0.5, false, 0.7, sensors, mechanismMotors));
 				break;
 			case "left_to_left_switch":
+				flopControl.setDown();
 				elevatorControl.setElevatorPositionTarget(SWITCH_AUTO_HEIGHT);
 				performTraj(selectedFile);
 				taskExecutor.addTask(new AutoIntakeMechanism(0, 1, false, 0.7, sensors, mechanismMotors));
 				break;
 			case "center_to_right_switch":
+				flopControl.setDown();
 				elevatorControl.setElevatorPositionTarget(SWITCH_AUTO_HEIGHT);
 				performTraj(selectedFile);
 				taskExecutor.addTask(new AutoIntakeMechanism(0, 1, false, 0.7, sensors, mechanismMotors));
 				break;
 			case "center_to_left_switch":
+				flopControl.setDown();
 				elevatorControl.setElevatorPositionTarget(SWITCH_AUTO_HEIGHT);
 				performTraj(selectedFile);
 				taskExecutor.addTask(new AutoIntakeMechanism(0, 1, false, 0.7, sensors, mechanismMotors));
 				break;	
 			case "right_to_right_scale": // -- scales --
+				flopControl.setDown();
+				elevatorControl.setElevatorPositionTarget(SCALE_AUTO_HEIGHT);
 				performTraj(selectedFile);
 				taskExecutor.addTask(new AutoIntakeMechanism(0, 1, false, 0.7, sensors, mechanismMotors));
 				break;
 			case "left_to_left_scale":
+				flopControl.setDown();
+				elevatorControl.setElevatorPositionTarget(SCALE_AUTO_HEIGHT);
 				performTraj(selectedFile);
 				taskExecutor.addTask(new AutoIntakeMechanism(0, 1, false, 0.7, sensors, mechanismMotors));
 				break;
@@ -82,21 +91,24 @@ public class AutoPathRoutines {
 				
 			//--ESPECIAL--
 			case "left_to_right_switch":
+				flopControl.setDown();
 				taskExecutor.addTask(new AutoDrivePositionAngle(0, 5.51, 0, driveTrain, 10, sensors, ahrs));
-				taskExecutor.addTask(new AutoTurnAngleTask(0, 90, 3, driveTrain, ahrs));
+				taskExecutor.addTask(new AutoTurnAngleTask(0, 90, 1.5, driveTrain, ahrs));
 				taskExecutor.addTask(new AutoDrivePositionAngle(0, 4.7, 90, driveTrain, 10, sensors, ahrs));
-				taskExecutor.addTask(new AutoTurnAngleTask(0, 180, 3, driveTrain, ahrs));
+				taskExecutor.addTask(new AutoTurnAngleTask(0, 180, 1.5, driveTrain, ahrs));
 				taskExecutor.addTask(new AutoDrivePositionAngle(0, 0.5, 180, driveTrain, 10, sensors, ahrs));
 				break;
 			case "right_to_left_switch":
 				
 				break;
 			case "left_to_left_switch_outside":
+				flopControl.setDown();
 				taskExecutor.addTask(new AutoDrivePositionAngle(0, 3.7, 0, driveTrain, 5, sensors, ahrs));
 				taskExecutor.addTask(new AutoTurnAngleTask(0, 90, 3, driveTrain, ahrs));
 				taskExecutor.addTask(new AutoDrivePositionAngle(0, 0.45, 90, driveTrain, 6, sensors, ahrs));
 				break;
 			case "left_to_left_switch_behind":
+				flopControl.setDown();
 				taskExecutor.addTask(new AutoDrivePositionAngle(0, 5.6, 0, driveTrain, 6, sensors, ahrs, 0.75));
 				taskExecutor.addTask(new AutoTurnAngleTask(0, 90 + 45, 3, driveTrain, ahrs));
 				taskExecutor.addTask(new AutoDrivePositionAngle(0, 1, 90 + 10, driveTrain, 6, sensors, ahrs));
@@ -112,6 +124,7 @@ public class AutoPathRoutines {
 				
 				break;
 			case "center_to_right_switch_2_block":
+				flopControl.setDown();
 				elevatorControl.setElevatorPositionTarget(SWITCH_AUTO_HEIGHT);
 				performTraj("center_to_right_switch");
 				taskExecutor.addTask(new AutoIntakeMechanism(0, 1, false, 0.7, sensors, mechanismMotors));

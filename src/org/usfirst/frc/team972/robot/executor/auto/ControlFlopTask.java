@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ControlFlopTask extends Task {
 
-	final double DOWN_MINIMUM = 0.05;
+	static final double DOWN_MINIMUM = 0.05;
 	
 	final double COEFFICENT_TORQUE_FEEDFOWARD = 0.05;
 	final double STARTING_REV = 0.245;
@@ -43,6 +43,11 @@ public class ControlFlopTask extends Task {
 		mp.setRealPositions(STARTING_REV);
 	}
 
+	public void setDown() {
+		mp.setRealPositions(DOWN_MINIMUM);
+		RobotLogger.toast("Setting Flop Down!");
+	}
+	
 	private double encoderPulseRevs(int pulse) {
 		double rev = (double)pulse/(double)2048;
 		return rev;

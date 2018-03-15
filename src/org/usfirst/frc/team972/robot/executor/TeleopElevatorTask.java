@@ -26,7 +26,7 @@ public class TeleopElevatorTask extends Task {
 	
 	final double[] ELEVATOR_POSITIONS = {0.05, 0.2, 0.5, 0.9};
 	final int[] ELEVATOR_BUTTONS = {180, 270, 0, 90};
-	public static final double POINT_OF_BAR_HIT = 0.75;
+	//public static final double POINT_OF_BAR_HIT = 0.75;
 	
 	double output = 0;
 	double currentTarget = 0;
@@ -99,12 +99,14 @@ public class TeleopElevatorTask extends Task {
 			}
 		}
 		
+		/*//Do not care about this anymore
 		if(currentTarget > POINT_OF_BAR_HIT) {
 			elevatorControl.setGoPastBar(true);
 			flopControl.setFlopPositionTarget(0);
 		} else {
 			elevatorControl.setGoPastBar(false);
 		}
+		*/
 		
 	}
 	
