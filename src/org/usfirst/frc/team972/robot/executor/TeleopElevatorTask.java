@@ -15,7 +15,7 @@ public class TeleopElevatorTask extends Task {
 	ControlElevatorTask elevatorControl;
 	ControlFlopTask flopControl;
 	
-	boolean flopDown = true;
+	boolean flopDown = false;
 	
 	double easingValue = 0.25;
 	final int elevatorAxisJoystick = 3;
@@ -24,7 +24,7 @@ public class TeleopElevatorTask extends Task {
 	
 	final double deadbandValue = 0.05;
 	
-	final double[] ELEVATOR_POSITIONS = {0.05, 0.2, 0.5, 0.9};
+	final double[] ELEVATOR_POSITIONS = {0.0, 0.2, 0.5, 1.0};
 	final int[] ELEVATOR_BUTTONS = {180, 270, 0, 90};
 	//public static final double POINT_OF_BAR_HIT = 0.75;
 	
@@ -52,6 +52,8 @@ public class TeleopElevatorTask extends Task {
 	public void init(double dt) {
 		// TODO Auto-generated method stub
 		elevatorControl.setElevatorPositionTarget((float)ELEVATOR_POSITIONS[0]);
+		flopDown = flopControl.isDown();
+		flopControl.setFlopPositionTarget(flopControl.getFlopCurrentPos());
 	}
 
 	@Override
@@ -80,10 +82,10 @@ public class TeleopElevatorTask extends Task {
 			flopControl.setFlopPositionTarget(flopControl.getFlopCurrentPos());
 			flopControl.setControl(true);
 			if(flopDown) {
-				flopControl.setFlopPositionTarget(0.05);
+				flopControl.setFlopPositionTarget(flopControl.STARTING_REV * 0.9);
 				flopDown = false;
 			} else {
-				flopControl.setFlopPositionTarget(0.15);
+				flopControl.setFlopPositionTarget(flopControl.DOWN_MINIMUM);
 				flopDown = true;
 			}
 		} else {

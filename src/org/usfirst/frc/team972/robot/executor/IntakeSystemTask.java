@@ -14,7 +14,7 @@ public class IntakeSystemTask extends Task{
 	Sensors sensors;
 	
 	double easingValue = 0.1;
-	double intakeMotorPower = 0.7;
+	double intakeMotorPower = 0.5;
 	double intakeSlowPower = 0.15;
 	double overdrawReducePower = 0.1;
 	
@@ -64,21 +64,23 @@ public class IntakeSystemTask extends Task{
 		*/
 		
 		// add this in && !sensors.getFrontIntakeSensorValue()
+		easingValue = 0.1;
 		if (activateIntakeMotors) {
 			intakeOutputPower = interpolateValues(intakeMotorPower, intakeOutputPower);
 		} else if(reverseIntakeMotors) {
-			intakeOutputPower = interpolateValues(-intakeMotorPower, intakeOutputPower);
+			easingValue = 1;
+			intakeOutputPower = interpolateValues(-0.9, intakeOutputPower);
 		} else if(fireBlockSlow){
 			intakeOutputPower = interpolateValues(-intakeSlowPower, intakeOutputPower);
 		} else {
 			intakeOutputPower = 0;
 		}
 		
-		if((activateIntakeMotors || reverseIntakeMotors || fireBlockSlow) && mechanismMotors.IntakeMotorOverdraw()) {
+		if((activateIntakeMotors || fireBlockSlow) && mechanismMotors.IntakeMotorOverdraw()) {
 			intakeOutputPower = interpolateValues(Math.signum(intakeOutputPower) * overdrawReducePower, intakeOutputPower);
 		}
 		
-		mechanismMotors.RunIntakeMotors(intakeOutputPower);
+		mechanismMotors.RunIntakeMotors(-intakeOutputPower);
 		
 	}
 	

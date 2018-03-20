@@ -16,7 +16,6 @@
 				  -- final git push precomp @ 7:37 PM PST
  */
 
-
 package org.usfirst.frc.team972.robot;
 
 import org.usfirst.frc.team972.robot.executor.IntakeSystemTask;
@@ -48,6 +47,7 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SPI;
@@ -85,20 +85,20 @@ public class Robot extends IterativeRobot {
 	
 	public void robotInit() {
 		RobotLogger.toast("Robot Init");
-		
+
 		autoQuery = new AutoQuery();
 		ahrs = (AHRS) sensors.createAHRS();
 		sensors.SetupEncoderDriveTrain(2, 3, 0, 1);
 		
-		sensors.SetupIntakeSensors(5);
-		mechanismMotors.SetupIntakeMotors(2, 3); // left, right
+		//sensors.SetupIntakeSensors(5);
+		mechanismMotors.SetupIntakeMotors(11, 12); // left, right
 		
-		mechanismMotors.SetupWinchMotors(11); // motor 11
+		mechanismMotors.SetupWinchMotors(2); // motor 2
 		
-		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(10));
+		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(1));
 		
-		mechanismMotors.SetupElevatorFlopMotor(1); // motor 1
-		sensors.SetupEncoderFlop(6, 7);
+		sensors.SetupEncoderFlop(mechanismMotors.SetupElevatorFlopMotor(10)); // motor 10
+
 		
 		driveTrain.SetupProcedure(4, 5, 6, 
 								  7, 8, 9);
@@ -107,7 +107,6 @@ public class Robot extends IterativeRobot {
 		driveTrain.setTalonsPWM_follow();
 		
 		AutoPicker.setup();
-		CameraSystem.startCamera();
 
 		autoRoutine = new AutoPathRoutines(taskExecutor,
 				autoQuery, driveTrain, sensors, ahrs, mechanismMotors);
@@ -118,6 +117,32 @@ public class Robot extends IterativeRobot {
 		mechanismMotors.SetupElevatorFlopMotor(3);
 		sensors.SetupEncoderFlop(6, 7);
 		*/
+		
+		new Thread() {
+			public void run() {
+				while(true) {
+					try { 
+						Thread.sleep(1000);
+					} catch(Exception e) {
+						e.printStackTrace();
+					}
+					if(DriverStation.getInstance().isDSAttached()) {
+						RobotLogger.toast("Preparing to start camera");
+						try {
+							Thread.sleep(5000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						CameraSystem.startCamera();
+						System.out.println("Camera Starting");
+						break;
+					} else {
+						RobotLogger.toast("Waiting For Driver Station Camera Connection");
+					}
+				}
+			}
+		}.start();
 	}
 
 	public void autonomousInit() {
@@ -136,6 +161,8 @@ public class Robot extends IterativeRobot {
 		realStartTime = Timer.getFPGATimestamp();
 		autoQuery.getData(); // retrieve the game data
 		
+		taskExecutor.addTask(new AutoDriveSimpleTime(7, 4, 0.5, driveTrain));
+		
 		if(autoRoutine.pickRoutine()) {
 			RobotLogger.toast("Routine Picked Success: Starting Auto");
 			taskExecutor.autonomousStart();
@@ -144,6 +171,20 @@ public class Robot extends IterativeRobot {
 		}
 		
 		autoRealTimeControlLoop();
+		/*
+		try {
+			RobotLogger.toast("Preparing for time based");
+			Thread.sleep(9000);
+			driveTrain.driveSidesPWM(0.5, 0.5);
+			Thread.sleep(5000);
+			RobotLogger.toast("Time based finished!");
+			driveTrain.driveSidesPWM(0, 0);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
+		
 	}
 
 	public void autonomousPeriodic() {

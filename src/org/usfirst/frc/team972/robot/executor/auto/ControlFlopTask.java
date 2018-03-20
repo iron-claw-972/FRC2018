@@ -12,10 +12,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ControlFlopTask extends Task {
 
-	static final double DOWN_MINIMUM = 0.05;
+	public static final double DOWN_MINIMUM = -0.05;
+	static final double FLOP_DOWN_CRITERIA = 0.1;
+	double FLOP_GEAR_REDUCTION = 500;
 	
 	final double COEFFICENT_TORQUE_FEEDFOWARD = 0.05;
-	final double STARTING_REV = 0.245;
+	public static final double STARTING_REV = 0.4;
 	
 	boolean allowedControl = false;
 	boolean setPositionOnce = false;
@@ -24,13 +26,13 @@ public class ControlFlopTask extends Task {
 	double easingValue = 0.9;
 	double lastWantedPos = 0;
 	
-	PIDControl pidFlopMotor = new PIDControl(2, 0.0005, 0);
+	PIDControl pidFlopMotor = new PIDControl(2.5, 0.0005, 0);
 	
 	double ka = 0.005;
 	double kv = (double)5.5;
 	
 	MechanismActuators flopMech;
-	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.05, 0.2);
+	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.3, 0.3);
 	
 	Sensors sensors;
 	
@@ -49,7 +51,7 @@ public class ControlFlopTask extends Task {
 	}
 	
 	private double encoderPulseRevs(int pulse) {
-		double rev = (double)pulse/(double)2048;
+		double rev = ((double)pulse/(double)2048)/(double)FLOP_GEAR_REDUCTION;
 		return rev;
 	}
 	
@@ -63,9 +65,9 @@ public class ControlFlopTask extends Task {
 	}
 	
 	@Override
-	public void execute(double dt) {		
+	public void execute(double dt) {	
 		mp.update(flopPositionRevs, CoolMath.roundDigits(dt, 4));
-		double realPosition = encoderPulseRevs(sensors.getFlopEncoder()) + STARTING_REV;
+		double realPosition = -encoderPulseRevs(sensors.getFlopEncoder()) + STARTING_REV;
 		double position = CoolMath.roundDigits(mp.position, 3);
 		double velocity = CoolMath.roundDigits(mp.velocity, 3);
 		double acceleration = mp.acceleration;
@@ -96,7 +98,7 @@ public class ControlFlopTask extends Task {
 			output = -1;
 		}
 
-		//flopMech.RunFlopMotor(handleDeadband(output, 0.005));
+		flopMech.RunFlopMotor(-handleDeadband(output, 0.005));
 		SmartDashboard.putNumber("flop o", output);
 	}
 	
@@ -110,7 +112,7 @@ public class ControlFlopTask extends Task {
 	}
 	
 	public double getFlopCurrentPos() {
-		return encoderPulseRevs(sensors.getFlopEncoder());
+		return -encoderPulseRevs(sensors.getFlopEncoder()) + STARTING_REV;
 	}
 
     public double handleDeadband(double val, double deadband) {
@@ -119,7 +121,7 @@ public class ControlFlopTask extends Task {
 
 	public boolean isDown() {
 		//readibility
-		if(getFlopCurrentPos() < DOWN_MINIMUM) {
+		if(getFlopCurrentPos() < FLOP_DOWN_CRITERIA) {
 			return true;
 		} else {
 			return false;

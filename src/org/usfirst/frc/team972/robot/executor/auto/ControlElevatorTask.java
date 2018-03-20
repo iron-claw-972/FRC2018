@@ -24,18 +24,18 @@ public class ControlElevatorTask extends Task {
 	
 	double weightFeedFoward = 0.0;
 	
-	double maxHeight = 1;
+	double maxHeight = 1.25;
 	
-	PIDControl pidRightWinch = new PIDControl(3, 0.005, 0.025);
+	PIDControl pidRightWinch = new PIDControl(4, 0.005, 0.025);
 	
 	double ka = 0.05;
 	double kv = (double)1/2;
 
 	final double DIAMETER_ELEVATOR_WINCH = 0.05588; // meters, not accounting for cord windup radius.
-	final double GEARBOX_RATIO = 36;
+	final double GEARBOX_RATIO = 81;
 	
 	MechanismActuators elevatorMech;
-	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.9, 2.1);
+	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.5, 0.5); //0.9, 2.1
 	
 	ControlFlopTask flopControl;
 	
@@ -141,7 +141,7 @@ public class ControlElevatorTask extends Task {
 		SmartDashboard.putNumber("ff vel", (kv * Math.abs(velWant) * signnum));
 		SmartDashboard.putNumber("ff acc", (ka * accWant));
 		
-		elevatorMech.RunElevatorLiftMotor(-handleDeadband(output, 0.05));
+		elevatorMech.RunElevatorLiftMotor(handleDeadband(output, 0.05));
 	}
 	
 	private double interpolateValues(double want, double actual) {

@@ -50,25 +50,19 @@ public class AutoIntakeMechanism extends Task {
 			output = 0;
 			super.destroy();
 		} else {
-			boolean frontIntakeSensorValue = sensors.getFrontIntakeSensorValue();
+			//boolean frontIntakeSensorValue = sensors.getFrontIntakeSensorValue();
 
 			if(pullingIn) {
-				if(frontIntakeSensorValue) {
-					counterIntakeTripped++;
-				} else {
-					counterIntakeTripped = 0;
-				}
-				
 				if(counterIntakeTripped > MAX_INTAKE_TRIPPED) {
 					RobotLogger.toast("Auto Intake Tripped, Finished Intaking");
 					output = 0;
 					super.destroy();
 				} else {
-					output = interpolateValues(power, output);
+					output = interpolateValues(-power, output);
 				}
 				
 			} else {
-				output = interpolateValues(-power, output);
+				output = interpolateValues(power, output);
 			}
 			
 			if(motors.IntakeMotorOverdraw()) {

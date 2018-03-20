@@ -61,13 +61,24 @@ public class TrajectoryExecutionTask extends Task {
 	Sensors sensors;
 
 	double lastTime = 0;
-
+	double maxTime = 10000;
+	double startTime = 0;
+	
 	public TrajectoryExecutionTask(double _executionTime, MainDriveTrain _mdt, Sensors _sensors, AHRS _ahrs) {
 		super(_executionTime);
 		driveTrain = _mdt;
 		sensors = _sensors;
 		ahrs = _ahrs;
 	}
+	
+	public TrajectoryExecutionTask(double _executionTime, MainDriveTrain _mdt, Sensors _sensors, AHRS _ahrs, double _maxTime) {
+		super(_executionTime);
+		driveTrain = _mdt;
+		sensors = _sensors;
+		ahrs = _ahrs;
+		maxTime = _maxTime;
+	}
+
 
 	@Override
 	public void init(double dt) {
@@ -75,6 +86,7 @@ public class TrajectoryExecutionTask extends Task {
 		lastTime = dt;
 		leftError = 0;
 		rightError = 0;
+		startTime = dt;
 		
 		headingPid.setOutputLimits(-0.2, 0.2);
 		headingPid.setOutputFilter(0.05);
@@ -111,7 +123,12 @@ public class TrajectoryExecutionTask extends Task {
 
 	@Override
 	public void execute(double dt) {
-		if(finished == false ) {
+		if(dt >= (maxTime + startTime)) {
+			RobotLogger.toast("Time Expired for Traj");
+			driveTrain.stopCoast();
+			super.free();
+			super.destroy();
+		} else if(finished == false ) {
 			double realDt = Math.max(dt - lastTime, (double) 1000 / Robot.REAL_TIME_LOOP_HZ / 1000);
 	
 			double leftRealDist = driveTrain.pulseToMetersLinear(sensors.getLeftDriveEncoder());

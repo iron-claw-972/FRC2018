@@ -27,6 +27,7 @@ public class AutoPicker {
 		
 		overrideMode = new SendableChooser();
 		overrideMode.addDefault("NO override", "no_override");
+		overrideMode.addObject("do nothing", "nothing");
 		FileInput.addChoosers(overrideMode);
 		
 		SmartDashboard.putData("Side Choose", sideChooser);
@@ -34,14 +35,14 @@ public class AutoPicker {
 		SmartDashboard.putData("Override Chooser (Testing Use Only!)", overrideMode);
 	}
 	
-	public static String getOverrideSelected() {
-		return (String) overrideMode.getSelected();
-	}
-
 	public static String selectFile(AutoQuery query) {
 		String side = (String)sideChooser.getSelected();
 		String mode = (String)modeChooser.getSelected();
 		String override = (String)overrideMode.getSelected();
+		
+		RobotLogger.toast(side);
+		RobotLogger.toast(mode);
+		RobotLogger.toast(override);
 		
 		if(override.equals("no_override")) {
 			if(mode.equals("side_switch")) {
@@ -65,7 +66,7 @@ public class AutoPicker {
 					}
 				} else {
 					RobotLogger.toast("Auto Side Failure: " + side + " " + query.switchSide);
-					return null;
+					return "five_meters_foward";
 				} 
 			} else if (mode.equals("side_scale")) {
 				if((side.equals("right")) && (query.scaleSide == 'R')) {
@@ -92,7 +93,10 @@ public class AutoPicker {
 				}
 			}
 					
-		} else {
+		} else if (override == "nothing") {
+			return "nothing";
+		}else {
+		
 			RobotLogger.toast("Overrided Auto: " + override);
 			return override;
 		}
