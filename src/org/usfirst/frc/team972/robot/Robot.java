@@ -11,9 +11,6 @@
  |____|\___/ |_|\___/   (_) (_) (_)  \_____\____/|_____/|______|                        
                                                                                         
                   written by the IronClaw Programming Team for 2018 FIRST FRC Game: Power Up
-				  -- precomp revision finalized (3/14/2018 @ 7:29 PM PST)
-				  -- precomp revision 2.0 finalized (3/14/2018 @ 7:36 PM PST)
-				  -- final git push precomp @ 7:37 PM PST
  */
 
 package org.usfirst.frc.team972.robot;
