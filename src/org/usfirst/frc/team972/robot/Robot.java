@@ -213,10 +213,13 @@ public class Robot extends IterativeRobot {
 		armControl.realtimeTask = true;
 		
 		taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
+		
 		taskExecutor.addTask(new TeleopElevatorTask(0, uig, mechanismMotors, elevatorControl));
+		taskExecutor.addTask(new TeleopIntakeArmTask(0, uig, armControl, sensors));
 		taskExecutor.addTask(elevatorControl);
+		taskExecutor.addTask(armControl);
+		
 		taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
-		taskExecutor.addTask(new TeleopIntakeArmTask(0, uig, armControl));
 		
 		taskExecutor.teleopStart();
 		

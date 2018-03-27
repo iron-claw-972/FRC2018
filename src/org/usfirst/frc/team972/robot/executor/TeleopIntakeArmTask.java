@@ -31,7 +31,7 @@ public class TeleopIntakeArmTask extends Task {
 
 	@Override
 	public void init(double dt) {
-		if((Math.abs(sensors.getLeftIntake()) + Math.abs(sensors.getRightIntake())) > 1) {
+		if((Math.abs(sensors.getLeftIntake()) + Math.abs(sensors.getRightIntake())) > 3072) {
 			currentMode = 'C';
 			RobotLogger.toast("Intake Arm Detected as READY");
 		} else {
