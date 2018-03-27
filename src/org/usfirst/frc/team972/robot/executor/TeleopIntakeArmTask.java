@@ -1,6 +1,8 @@
 package org.usfirst.frc.team972.robot.executor;
 
+import org.usfirst.frc.team972.robot.RobotLogger;
 import org.usfirst.frc.team972.robot.executor.auto.ControlIntakeArmTask;
+import org.usfirst.frc.team972.robot.ui.Sensors;
 import org.usfirst.frc.team972.robot.ui.UserInputGamepad;
 
 import edu.wpi.first.wpilibj.Joystick;
@@ -19,7 +21,9 @@ public class TeleopIntakeArmTask extends Task {
 	
 	char currentMode = 'B';
 	
-	public TeleopIntakeArmTask(double _executionTime, UserInputGamepad _uig, ControlIntakeArmTask _armControl) {
+	Sensors sensors;
+	
+	public TeleopIntakeArmTask(double _executionTime, UserInputGamepad _uig, ControlIntakeArmTask _armControl, Sensors _sensors) {
 		super(_executionTime);
 		uig = _uig;
 		armControl = _armControl;
@@ -27,8 +31,13 @@ public class TeleopIntakeArmTask extends Task {
 
 	@Override
 	public void init(double dt) {
-		// TODO Auto-generated method stub
-		
+		if((Math.abs(sensors.getLeftIntake()) + Math.abs(sensors.getRightIntake())) > 1) {
+			currentMode = 'C';
+			RobotLogger.toast("Intake Arm Detected as READY");
+		} else {
+			currentMode = 'B';
+			RobotLogger.toast("Intake Arm Detected as BACK");
+		}
 	}
 
 	@Override
