@@ -18,6 +18,20 @@ public class MechanismActuators {
 	WPI_TalonSRX elevatorFlopMotor;
 	WPI_TalonSRX elevatorLiftMotor;
 	
+	public WPI_TalonSRX intakeArmMotorLeft;
+	public WPI_TalonSRX intakeArmMotorRight;
+	
+	public void SetupIntakeArmMotors(int left, int right) {
+		intakeArmMotorLeft = new WPI_TalonSRX(left);
+		intakeArmMotorRight = new WPI_TalonSRX(right);
+		
+		intakeArmMotorLeft.set(ControlMode.PercentOutput, 0);
+		intakeArmMotorRight.set(ControlMode.PercentOutput, 0);
+		
+		intakeArmMotorLeft.setNeutralMode(NeutralMode.Coast);
+		intakeArmMotorRight.setNeutralMode(NeutralMode.Coast);
+	}
+	
 	public WPI_TalonSRX SetupElevatorLiftMotor(int motorId) {
 		elevatorLiftMotor = new WPI_TalonSRX(motorId);
 		elevatorLiftMotor.setNeutralMode(NeutralMode.Brake);
@@ -62,6 +76,11 @@ public class MechanismActuators {
 		elevatorLiftMotor.set(power);
 	}
 
+	public void RunIntakeArmMotors(double left, double right) {
+		intakeArmMotorLeft.set(left);
+		intakeArmMotorRight.set(right);
+	}
+	
 	public void RunFlopMotor(double power) {
 		elevatorFlopMotor.set(power);
 	}

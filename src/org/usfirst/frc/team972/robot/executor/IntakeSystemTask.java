@@ -49,29 +49,13 @@ public class IntakeSystemTask extends Task{
 		Joystick mainJoystick = uig.getStickB();
 		activateIntakeMotors = mainJoystick.getRawButton(1);
 		reverseIntakeMotors = mainJoystick.getRawButton(2);
-		fireBlockSlow = mainJoystick.getRawButton(5);
 		
-		//frontIntakeSensorValue = sensors.getFrontIntakeSensorValue();
-		//backIntakeSensorValue = sensors.getBackIntakeSensorValue();
-		/*
-		if (activateIntakeMotors && !(backIntakeSensorValue && frontIntakeSensorValue)) {
-			mechanismMotors.RunIntakeMotors(intakeMotorPower);
-		} else if(reverseIntakeMotors) {
-			mechanismMotors.RunIntakeMotors(-intakeMotorPower);
-		} else {
-			mechanismMotors.RunIntakeMotors(0);
-		}
-		*/
-		
-		// add this in && !sensors.getFrontIntakeSensorValue()
 		easingValue = 0.1;
 		if (activateIntakeMotors) {
 			intakeOutputPower = interpolateValues(intakeMotorPower, intakeOutputPower);
 		} else if(reverseIntakeMotors) {
-			easingValue = 1;
-			intakeOutputPower = interpolateValues(-0.9, intakeOutputPower);
-		} else if(fireBlockSlow){
-			intakeOutputPower = interpolateValues(-intakeSlowPower, intakeOutputPower);
+			easingValue = 0.5;
+			intakeOutputPower = interpolateValues(-0.8, intakeOutputPower);
 		} else {
 			intakeOutputPower = 0;
 		}

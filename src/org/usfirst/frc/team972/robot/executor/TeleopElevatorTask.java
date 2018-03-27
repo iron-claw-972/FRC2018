@@ -13,7 +13,6 @@ public class TeleopElevatorTask extends Task {
 	MechanismActuators mechanismMotors;
 	UserInputGamepad uig;
 	ControlElevatorTask elevatorControl;
-	ControlFlopTask flopControl;
 	
 	boolean flopDown = false;
 	
@@ -31,12 +30,11 @@ public class TeleopElevatorTask extends Task {
 	double output = 0;
 	double currentTarget = 0;
 	
-	public TeleopElevatorTask(double _executionTime, UserInputGamepad _uig, MechanismActuators _mechanismMotors, ControlElevatorTask _elevatorControl, ControlFlopTask _flopControl) {
+	public TeleopElevatorTask(double _executionTime, UserInputGamepad _uig, MechanismActuators _mechanismMotors, ControlElevatorTask _elevatorControl) {
 		super(_executionTime);
 		mechanismMotors = _mechanismMotors;
 		uig = _uig;
 		elevatorControl = _elevatorControl;
-		flopControl = _flopControl;
 	}
 
     public double handleDeadband(double val, double deadband) {
@@ -52,8 +50,6 @@ public class TeleopElevatorTask extends Task {
 	public void init(double dt) {
 		// TODO Auto-generated method stub
 		elevatorControl.setElevatorPositionTarget((float)ELEVATOR_POSITIONS[0]);
-		flopDown = flopControl.isDown();
-		flopControl.setFlopPositionTarget(flopControl.getFlopCurrentPos());
 	}
 
 	@Override
@@ -75,6 +71,7 @@ public class TeleopElevatorTask extends Task {
 			elevatorControl.setControl(true); //TODO: should we be true for real
 		}
 	
+		/*
 		if(Math.abs(joystickB.getRawAxis(0)) > 0.05) {
 			flopControl.setControl(false);
 			mechanismMotors.RunFlopMotor(joystickB.getRawAxis(0));
@@ -91,6 +88,7 @@ public class TeleopElevatorTask extends Task {
 		} else {
 			mechanismMotors.RunFlopMotor(0);
 		}
+		*/
 		
 		for(int i=0; i<ELEVATOR_BUTTONS.length; i++) {
 			if(joystickB.getPOV() == ELEVATOR_BUTTONS[i]) {
@@ -100,16 +98,6 @@ public class TeleopElevatorTask extends Task {
 				break;
 			}
 		}
-		
-		/*//Do not care about this anymore
-		if(currentTarget > POINT_OF_BAR_HIT) {
-			elevatorControl.setGoPastBar(true);
-			flopControl.setFlopPositionTarget(0);
-		} else {
-			elevatorControl.setGoPastBar(false);
-		}
-		*/
-		
 	}
 	
 	public void setEnable() {

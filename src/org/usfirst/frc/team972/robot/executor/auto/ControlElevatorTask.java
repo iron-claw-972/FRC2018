@@ -37,16 +37,13 @@ public class ControlElevatorTask extends Task {
 	MechanismActuators elevatorMech;
 	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.5, 0.5); //0.9, 2.1
 	
-	ControlFlopTask flopControl;
-	
 	Sensors sensors;
 	
 	double elevatorPositionTarget = 0;
 	
-	public ControlElevatorTask(double _executionTime, MechanismActuators _elevatorMech, Sensors _sensors, ControlFlopTask _flopControl) {
+	public ControlElevatorTask(double _executionTime, MechanismActuators _elevatorMech, Sensors _sensors) {
 		super(_executionTime);
 		elevatorMech = _elevatorMech;
-		flopControl = _flopControl;
 		sensors = _sensors;
 		// TODO Auto-generated constructor stub
 	}

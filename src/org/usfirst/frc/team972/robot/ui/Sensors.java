@@ -20,12 +20,26 @@ public class Sensors {
 	DigitalInput frontIntakeOpticalSensor;
 	//DigitalInput backIntakeOpticalSensor;
 	
+	WPI_TalonSRX intakeLeft;
+	WPI_TalonSRX intakeRight;
+	
 	public void SetupEncoderDriveTrain(int l1, int l2, int r1, int r2) {
 		leftSideEncoderDriveTrain = new Encoder(l1, l2);
 		rightSideEncoderDriveTrain = new Encoder(r1, r2);
 		
 		leftSideEncoderDriveTrain.setDistancePerPulse(1);
 		rightSideEncoderDriveTrain.setDistancePerPulse(1);
+	}
+	
+	public void SetupIntake(WPI_TalonSRX left, WPI_TalonSRX right) {
+		intakeLeft = left;
+		intakeRight = right;
+		
+		intakeLeft.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
+		intakeRight.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
+		
+		intakeLeft.setSensorPhase(false);
+		intakeRight.setSensorPhase(false);
 	}
 	
 	public void SetupEncoderElevator(WPI_TalonSRX _elevatorTalon) {
@@ -92,6 +106,18 @@ public class Sensors {
 		rightSideEncoderDriveTrain.reset();
 	}
 
+	public void resetIntakeEncoders() {
+		intakeLeft.setSelectedSensorPosition(0, 0, 0);
+	}
+	
+	public int getLeftIntake() {
+		return intakeLeft.getSelectedSensorPosition(0);
+	}
+	
+	public int getRightIntake() {
+		return intakeRight.getSelectedSensorPosition(0);
+	}
+	
 	public AHRS createAHRS() {
 		RobotLogger.toast("Preparing to obtain the AHRS");
 		try {

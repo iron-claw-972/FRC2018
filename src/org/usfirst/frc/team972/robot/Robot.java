@@ -22,6 +22,7 @@ import org.usfirst.frc.team972.robot.executor.IntakeSystemTask;
 import org.usfirst.frc.team972.robot.executor.TaskExecutor;
 import org.usfirst.frc.team972.robot.executor.TeleopArcadeDriveTask;
 import org.usfirst.frc.team972.robot.executor.TeleopElevatorTask;
+import org.usfirst.frc.team972.robot.executor.TeleopIntakeArmTask;
 import org.usfirst.frc.team972.robot.executor.TeleopTankDriveTask;
 import org.usfirst.frc.team972.robot.executor.TeleopWinchTask;
 import org.usfirst.frc.team972.robot.executor.auto.AutoDrivePositionAngle;
@@ -31,7 +32,7 @@ import org.usfirst.frc.team972.robot.executor.auto.AutoPathRoutines;
 import org.usfirst.frc.team972.robot.executor.auto.AutoQuery;
 import org.usfirst.frc.team972.robot.executor.auto.AutoTurnAngleTask;
 import org.usfirst.frc.team972.robot.executor.auto.ControlElevatorTask;
-import org.usfirst.frc.team972.robot.executor.auto.ControlFlopTask;
+import org.usfirst.frc.team972.robot.executor.auto.ControlIntakeArmTask;
 import org.usfirst.frc.team972.robot.executor.auto.TrajectoryExecutionTask;
 import org.usfirst.frc.team972.robot.motionlib.Point;
 import org.usfirst.frc.team972.robot.motionlib.PointsPath;
@@ -93,12 +94,10 @@ public class Robot extends IterativeRobot {
 		//sensors.SetupIntakeSensors(5);
 		mechanismMotors.SetupIntakeMotors(11, 12); // left, right
 		
-		mechanismMotors.SetupWinchMotors(2); // motor 2
-		
-		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(1));
-		
-		sensors.SetupEncoderFlop(mechanismMotors.SetupElevatorFlopMotor(10)); // motor 10
+		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(1));		
 
+		mechanismMotors.SetupIntakeArmMotors(0, 0); //TODO: fill in
+		sensors.SetupIntake(mechanismMotors.intakeArmMotorLeft, mechanismMotors.intakeArmMotorRight);
 		
 		driveTrain.SetupProcedure(4, 5, 6, 
 								  7, 8, 9);
@@ -150,7 +149,7 @@ public class Robot extends IterativeRobot {
 		
 		sensors.resetDriveEncoders();
 		sensors.resetElevatorEncoder();
-		sensors.resetFlopEncoder();
+		sensors.resetIntakeEncoders();
 		
 		ahrs.reset();
 		ahrs.resetDisplacement();
@@ -171,7 +170,7 @@ public class Robot extends IterativeRobot {
 		}
 		
 		autoRealTimeControlLoop();
-		/*
+		/*	
 		try {
 			RobotLogger.toast("Preparing for time based");
 			Thread.sleep(9000);
@@ -209,18 +208,19 @@ public class Robot extends IterativeRobot {
 		ahrs.reset();
 		ahrs.resetDisplacement();
 		
-		ControlFlopTask flopControl = new ControlFlopTask(0, mechanismMotors, sensors);
-		ControlElevatorTask elevatorControl = new ControlElevatorTask(0, mechanismMotors, sensors, flopControl);
+		ControlElevatorTask elevatorControl = new ControlElevatorTask(0, mechanismMotors, sensors);
 
+		ControlIntakeArmTask armControl = new ControlIntakeArmTask(0, sensors, mechanismMotors);
+		
 		elevatorControl.realtimeTask = true;
-		flopControl.realtimeTask = true;
+		armControl.realtimeTask = true;
 		
 		taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
-		taskExecutor.addTask(new TeleopElevatorTask(0, uig, mechanismMotors, elevatorControl, flopControl));
+		taskExecutor.addTask(new TeleopElevatorTask(0, uig, mechanismMotors, elevatorControl));
 		taskExecutor.addTask(elevatorControl);
-		taskExecutor.addTask(flopControl);
 		taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
-		taskExecutor.addTask(new TeleopWinchTask(0, uig, mechanismMotors));
+		taskExecutor.addTask(new TeleopIntakeArmTask(0, uig, armControl));
+		
 		taskExecutor.teleopStart();
 		
 		realStartTime = Timer.getFPGATimestamp();
@@ -290,6 +290,7 @@ public class Robot extends IterativeRobot {
 		sensors.resetDriveEncoders();
 		sensors.resetElevatorEncoder();
 		sensors.resetFlopEncoder();
+		sensors.resetIntakeEncoders();
 		RobotLogger.toast("Zeroed!");
 	}
 	
