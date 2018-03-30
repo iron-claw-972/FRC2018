@@ -25,12 +25,15 @@ public class AutoDriveVelocityProfileTask extends Task {
 	double initTime = 0;
 	double finalPos = 0;
 	
-	public AutoDriveVelocityProfileTask(double _executionTime, Trajectory[] _traj, Sensors _sensors, TrajectoryExecutionTask _follower, Trajectory _realTraj) {
+	boolean invert = false;
+	
+	public AutoDriveVelocityProfileTask(double _executionTime, Trajectory[] _traj, Sensors _sensors, TrajectoryExecutionTask _follower, Trajectory _realTraj, boolean _invert) {
 		super(_executionTime);
 		wheelTrajectories = _traj;
 		sensors = _sensors;
 		follower = _follower;
 		realTraj = _realTraj;
+		invert = _invert;
 	}
 
 	public void init(double dt) {
@@ -66,6 +69,15 @@ public class AutoDriveVelocityProfileTask extends Task {
 			double desiredRightP = rightSeg.pos;
 			double desiredLeftA = leftSeg.acc;
 			double desiredRightA = rightSeg.acc;
+			
+			if(invert) {
+				desiredLeftSpeed = -desiredLeftSpeed;
+				desiredRightSpeed = -desiredRightSpeed;
+				desiredLeftP = -desiredLeftP;
+				desiredRightP = -desiredRightP;
+				desiredLeftA = -desiredLeftA;
+				desiredRightA = -desiredRightA;
+			}
 			
 			follower.setpoint(desiredLeftSpeed, desiredRightSpeed, desiredLeftP, desiredRightP, desiredLeftA, desiredRightA, targetAngle, false);
 		} else {
