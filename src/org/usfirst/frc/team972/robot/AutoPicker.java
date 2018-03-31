@@ -2,6 +2,7 @@ package org.usfirst.frc.team972.robot;
 
 import org.usfirst.frc.team972.robot.executor.auto.AutoQuery;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -13,17 +14,14 @@ public class AutoPicker {
 	public static void setup() {
 		sideChooser = new SendableChooser();
 		sideChooser.addDefault("Start Center Side", "center");
-		sideChooser.addDefault("Start Center Side Slow", "center_slow");
 		sideChooser.addObject("Start Right Side", "right");
 		sideChooser.addObject("Start Left Side", "left");
 		
 		modeChooser = new SendableChooser();
 		
-		modeChooser.addDefault("Do Switch Any (Including Center)", "any_switch");
-		modeChooser.addDefault("Do Switch If On Same Side (Only Side)", "side_switch");
-		modeChooser.addDefault("Do Scale Any (Only Side)", "any_scale");
-		modeChooser.addDefault("Do Scale If On Same Side (Only Side)", "side_scale");
-		modeChooser.addDefault("Do SCALE or SWITCH if on SAME SIDE, or DEFENSE (Only Side)", "side_any");
+		modeChooser.addDefault("Do Switch Regular", "switch");
+		modeChooser.addDefault("Do Switch Regular, but do 2 block if we can!", "switch_2_block");
+
 		
 		overrideMode = new SendableChooser();
 		overrideMode.addDefault("NO override", "no_override");
@@ -45,50 +43,31 @@ public class AutoPicker {
 		RobotLogger.toast(override);
 		
 		if(override.equals("no_override")) {
-			if(mode.equals("side_switch")) {
+			if(mode.equals("switch") || mode.equals("switch_2_block")) {
 				if((side.equals("right")) && (query.switchSide == 'R')) {
 					return "right_to_right_switch";
 				} else if((side.equals("left")) && (query.switchSide == 'L')) {
 					return "left_to_left_switch";
 				} else if((side.equals("center"))) {
-					if(query.switchSide == 'L') {
-						return "center_to_left_switch";
-					} else if (query.switchSide == 'R') {
-						return "center_to_right_switch";
+					if(mode.equals("switch_2_block")) { //2 block
+						if(query.switchSide == 'L') {
+							return "center_to_left_switch";
+						} else if (query.switchSide == 'R') {
+							return "center_to_right_switch_2_block";
+						} else {
+							RobotLogger.toast("FMS Fault!!! Auto Broke during Center" + query.switchSide);
+						}
 					} else {
-						RobotLogger.toast("Auto Side Failure, Start from Center: " + query.switchSide);
-					}
-				} else if(side.equals("center_slow")) {
-					if(query.switchSide == 'L') {
-						return "center_to_left_switch_outside";
-					} else if (query.switchSide == 'R') {
-						return "center_to_right_switch_outside";
+						if(query.switchSide == 'L') { //easy block 1 block
+							return "center_to_left_switch";
+						} else if (query.switchSide == 'R') {
+							return "center_to_right_switch";
+						} else {
+							RobotLogger.toast("FMS Fault!!! Auto Broke during Center" + query.switchSide);
+						}
 					}
 				} else {
 					RobotLogger.toast("Auto Side Failure: " + side + " " + query.switchSide);
-					return "five_meters_foward";
-				} 
-			} else if (mode.equals("side_scale")) {
-				if((side.equals("right")) && (query.scaleSide == 'R')) {
-					return "right_to_right_scale";
-				} else if((side.equals("left")) && (query.scaleSide == 'L')) {
-					return "left_to_left_scale";
-				} else {
-					RobotLogger.toast("Auto Scale Failure: " + side + " " + query.scaleSide);
-					return null;
-				}
-			} else if (mode.equals("side_any")) {
-				if((side.equals("right")) && (query.switchSide == 'R')) {
-					return "right_to_right_switch";
-				} else if((side.equals("left")) && (query.switchSide == 'L')) {
-					return "left_to_left_switch";
-				} else if((side.equals("right")) && (query.scaleSide == 'R')) {
-					return "right_to_right_scale";
-				} else if((side.equals("left")) && (query.scaleSide == 'L')) {
-					return "left_to_left_scale";
-				} else {
-					RobotLogger.toast("No Scale/Switch on side, but want to do any. Perform 5 Meter Baseline");
-					
 					return "five_meters_foward";
 				}
 			}
@@ -96,7 +75,6 @@ public class AutoPicker {
 		} else if (override == "nothing") {
 			return "nothing";
 		}else {
-		
 			RobotLogger.toast("Overrided Auto: " + override);
 			return override;
 		}

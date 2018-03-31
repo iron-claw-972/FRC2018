@@ -24,6 +24,7 @@ public class AutoDriveVelocityProfileTask extends Task {
 	
 	double initTime = 0;
 	double finalPos = 0;
+	double deltaWaitTime = 0;
 	
 	boolean invert = false;
 	
@@ -36,6 +37,10 @@ public class AutoDriveVelocityProfileTask extends Task {
 		invert = _invert;
 	}
 
+	public void deltaWait(double wait) {
+		deltaWaitTime = wait;
+	}
+	
 	public void init(double dt) {
 		// TODO Auto-generated method stub
 		initTime = dt;
@@ -55,6 +60,10 @@ public class AutoDriveVelocityProfileTask extends Task {
 
 	public void execute(double dt) {
 		dt = dt - initTime;
+		if(dt < deltaWaitTime) {
+			//Waiting on it!
+			return;
+		}
 		int numSegs = wheelTrajectories[0].getNumSegments();
 		int currentSegIndex = getSegmentDt(dt);
 		if(currentSegIndex < numSegs) {

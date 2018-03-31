@@ -47,29 +47,56 @@ public class AutoPathRoutines {
 		
 		switch(selectedFile) {
 			case "five_meters_foward":
-				performTraj(selectedFile);
+				performTraj(selectedFile, false);
+				break;
+			case "three_meters_foward":
+				performTraj(selectedFile, false);
 				break;
 			case "right_to_right_switch": // -- switches --
-				intakeArm.setPositionTarget(0.5, 0.5);
+				intakeArm.setPositionTarget(0.5, -0.5);
 				elevatorControl.setControl(true);
-				elevatorControl.setElevatorPositionTarget(SWITCH_AUTO_HEIGHT);
-				performTraj(selectedFile);
-				taskExecutor.addTask(new AutoIntakeMechanism(0, 1, false, 0.3, sensors, mechanismMotors));
+				taskExecutor.addTask(new AutoElevatorTargetTask(1, SWITCH_AUTO_HEIGHT, elevatorControl));
+				performTraj("right_to_right_switch", false);
+				taskExecutor.addTask(new AutoIntakeMechanism(0, 0.75, false, 0.5, sensors, mechanismMotors));
+				performTrajWait("right_backout", 1, true, true);
 				break;
+			case "left_to_left_switch":
+				intakeArm.setPositionTarget(0.5, -0.5);
+				elevatorControl.setControl(true);
+				taskExecutor.addTask(new AutoElevatorTargetTask(1, SWITCH_AUTO_HEIGHT, elevatorControl));
+				performTraj("left_to_left_switch", false);
+				taskExecutor.addTask(new AutoIntakeMechanism(0, 0.75, false, 0.5, sensors, mechanismMotors));
+				performTrajWait("left_backout", 1, true, true);
+				break;	
+			case "center_to_right_switch": // -- center switches --
+				intakeArm.setPositionTarget(0.5, -0.5);
+				elevatorControl.setControl(true);
+				taskExecutor.addTask(new AutoElevatorTargetTask(1, SWITCH_AUTO_HEIGHT, elevatorControl));
+				performTraj("center_to_right_switch", false);
+				taskExecutor.addTask(new AutoIntakeMechanism(0, 0.75, false, 0.5, sensors, mechanismMotors));
+				performTrajWait("right_backout", 1, true, true);
+				break;	
+			case "center_to_left_switch": //
+				intakeArm.setPositionTarget(0.5, -0.5);
+				elevatorControl.setControl(true);
+				taskExecutor.addTask(new AutoElevatorTargetTask(1, SWITCH_AUTO_HEIGHT, elevatorControl));
+				performTraj("center_to_left_switch", false);
+				taskExecutor.addTask(new AutoIntakeMechanism(0, 0.75, false, 0.5, sensors, mechanismMotors));
+				performTrajWait("right_backout", 1, true, true);
+				break;		
 			case "nothing": 
 				RobotLogger.toast("Auto Do Nothing! Only Perform Zeroing!");
 				break;
-				
 			default:
 				RobotLogger.toast("Unhandled Auto Pick: " + selectedFile, RobotLogger.URGENT);
-				performTraj(selectedFile);
+				performTraj(selectedFile, false);
 				break;
 		}
 		
 		return true;
 	}
 	
-	public void performTrajWait(String selectedFile, double time, boolean invert) {
+	public void performTrajWait(String selectedFile, double time, boolean invert, boolean deltaWait) {
 		RobotLogger.toast("Begin Trajectory Generation");
 		Trajectory splineTrajectory = new Trajectory(0);
 		try {
@@ -87,8 +114,18 @@ public class AutoPathRoutines {
 
 		TrajectoryExecutionTask follower = new TrajectoryExecutionTask(time, driveTrain, sensors, ahrs, 15);
 
-		taskExecutor.addTask(new AutoDriveVelocityProfileTask(time,
-				SplineGeneration.generateWheelTrajectories(splineTrajectory, Robot.WHEEL_BASE_WIDTH), sensors, follower, splineTrajectory, invert));
+		if(deltaWait) {
+			RobotLogger.toast("Traj using Delta wait : " + time);
+			AutoDriveVelocityProfileTask avp = new AutoDriveVelocityProfileTask(0,
+					SplineGeneration.generateWheelTrajectories(splineTrajectory, Robot.WHEEL_BASE_WIDTH), sensors, follower, splineTrajectory, invert);
+			avp.deltaWait(time);
+			taskExecutor.addTask(avp);	
+		} else {
+			RobotLogger.toast("Traj using Real wait : " + time);
+			taskExecutor.addTask(new AutoDriveVelocityProfileTask(time,
+					SplineGeneration.generateWheelTrajectories(splineTrajectory, Robot.WHEEL_BASE_WIDTH), sensors, follower, splineTrajectory, invert));
+		}
+		
 		taskExecutor.addTask(follower);
 	}
 	

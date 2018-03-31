@@ -15,7 +15,6 @@ public class AutoIntakeMechanism extends Task {
 	double easingValue = 0.2;
 	double overdrawReducePower = 0.15;
 	
-	final int MAX_INTAKE_TRIPPED = 50; // 50/200 = 0.25 seconds
 	int counterIntakeTripped = 0;
 
 	Sensors sensors;
@@ -53,14 +52,7 @@ public class AutoIntakeMechanism extends Task {
 			//boolean frontIntakeSensorValue = sensors.getFrontIntakeSensorValue();
 
 			if(pullingIn) {
-				if(counterIntakeTripped > MAX_INTAKE_TRIPPED) {
-					RobotLogger.toast("Auto Intake Tripped, Finished Intaking");
-					output = 0;
-					super.destroy();
-				} else {
-					output = interpolateValues(-power, output);
-				}
-				
+				output = interpolateValues(-power, output);
 			} else {
 				output = interpolateValues(power, output);
 			}
