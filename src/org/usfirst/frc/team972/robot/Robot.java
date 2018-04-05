@@ -1,16 +1,5 @@
-/*  _____ _____   ____  _   _  _____ _          __          __            ___ ______ ___  
- |_   _|  __ \ / __ \| \ | |/ ____| |        /\ \        / /           / _ \____  |__ \ 
-   | | | |__) | |  | |  \| | |    | |       /  \ \  /\  / /   ______  | (_) |  / /   ) |
-   | | |  _  /| |  | | . ` | |    | |      / /\ \ \/  \/ /   |______|  \__, | / /   / / 
-  _| |_| | \ \| |__| | |\  | |____| |____ / ____ \  /\  /                / / / /   / /_ 
- |_____|_|_ \_\\____/|_| \_|\_____|______/_/____\_\/__\/ ______         /_/ /_/   |____|
- |__ \ / _ \/_ |/ _ \                / ____/ __ \|  __ \|  ____|                        
-    ) | | | || | (_) |              | |   | |  | | |  | | |__                           
-   / /| | | || |> _ <               | |   | |  | | |  | |  __|                          
-  / /_| |_| || | (_) |   _   _   _  | |___| |__| | |__| | |____                         
- |____|\___/ |_|\___/   (_) (_) (_)  \_____\____/|_____/|______|                        
-                                                                                        
-                  written by the IronClaw Programming Team for 2018 FIRST FRC Game: Power Up
+/*
+ * code
  */
 
 package org.usfirst.frc.team972.robot;
@@ -41,7 +30,7 @@ import org.usfirst.frc.team972.robot.ui.Sensors;
 import org.usfirst.frc.team972.robot.ui.UserInputGamepad;
 
 import com.kauailabs.navx.frc.AHRS;
-
+import edu.wpi.cscore.UsbCamera;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Compressor;
@@ -83,12 +72,15 @@ public class Robot extends IterativeRobot {
 	
 	public void robotInit() {
 		RobotLogger.toast("Robot Init");
-
+		
+		//hope this works?
+		//CameraServer.getInstance().startAutomaticCapture();
+		
+		/*
 		autoQuery = new AutoQuery();
 		ahrs = (AHRS) sensors.createAHRS();
 		sensors.SetupEncoderDriveTrain(2, 3, 0, 1);
-		
-		//sensors.SetupIntakeSensors(5);
+
 		mechanismMotors.SetupIntakeMotors(11, 12); // left, right
 		
 		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(1));		
@@ -106,39 +98,11 @@ public class Robot extends IterativeRobot {
 
 		autoRoutine = new AutoPathRoutines(taskExecutor,
 				autoQuery, driveTrain, sensors, ahrs, mechanismMotors);
-				
-	
-		/*//elevator testing code!!!
-		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(1));
-		mechanismMotors.SetupElevatorFlopMotor(3);
-		sensors.SetupEncoderFlop(6, 7);
-		*/
+		*/		
 		
-		new Thread() {
-			public void run() {
-				while(true) {
-					try { 
-						Thread.sleep(1000);
-					} catch(Exception e) {
-						e.printStackTrace();
-					}
-					if(DriverStation.getInstance().isDSAttached()) {
-						RobotLogger.toast("Preparing to start camera");
-						try {
-							Thread.sleep(5000);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						CameraSystem.startCamera();
-						System.out.println("Camera Starting");
-						break;
-					} else {
-						RobotLogger.toast("Waiting For Driver Station Camera Connection");
-					}
-				}
-			}
-		}.start();
+		mechanismMotors.SetupIntakeMotors(3,4);
+		mechanismMotors.SetupIntakeArmMotors(2, 1); //TODO: fill in
+		sensors.SetupIntake(mechanismMotors.intakeArmMotorLeft, mechanismMotors.intakeArmMotorRight);
 	}
 
 	public void autonomousInit() {
@@ -188,7 +152,7 @@ public class Robot extends IterativeRobot {
 	}
 
 	public void teleopInit() {
-		sensors.resetDriveEncoders();
+		sensors.resetIntakeEncoders();
 		
 		// in a real match, we do not want to zero in teleop
 		//sensors.resetElevatorEncoder();
@@ -196,27 +160,30 @@ public class Robot extends IterativeRobot {
 		
 		RobotLogger.toast("Teleop Init");
 		
+		/*
+		sensors.resetDriveEncoders();
 		new Compressor(40).start();
 		
 		driveTrain.setTalonsPWM_follow();
 		driveTrain.diagnosis();
 		driveTrain.shiftSolenoidDown();
+		driveTrain.setTalonsCoast();
 
 		ahrs.reset();
 		ahrs.resetDisplacement();
 		
 		ControlElevatorTask elevatorControl = new ControlElevatorTask(0, mechanismMotors, sensors);
-
+		*/
 		ControlIntakeArmTask armControl = new ControlIntakeArmTask(0, sensors, mechanismMotors);
 		
-		elevatorControl.realtimeTask = true;
+		//elevatorControl.realtimeTask = true;
 		armControl.realtimeTask = true;
 		
-		taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
-		taskExecutor.addTask(new TeleopElevatorTask(0, uig, mechanismMotors, elevatorControl));
+		//taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
+		//taskExecutor.addTask(new TeleopElevatorTask(0, uig, mechanismMotors, elevatorControl));
 		taskExecutor.addTask(new TeleopIntakeArmTask(0, uig, armControl, sensors));
 		
-		taskExecutor.addTask(elevatorControl);
+		//taskExecutor.addTask(elevatorControl);
 		taskExecutor.addTask(armControl);
 		
 		taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
@@ -231,7 +198,7 @@ public class Robot extends IterativeRobot {
 	public void disabledPeriodic() {
 		taskExecutor.stop();
 		taskExecutor.forceClearTasks();
-		driveTrain.stopCoast();
+		//driveTrain.stopCoast();
 		controlLoopCycle = 0;
 	}
 	
@@ -285,17 +252,35 @@ public class Robot extends IterativeRobot {
 		taskExecutor.stop();
 	}
 	
+	Thread testThread;
 	public void testInit() {
-		RobotLogger.toast("Test Mode Run: Begin Zero!");
-		sensors.resetDriveEncoders();
-		sensors.resetElevatorEncoder();
-		sensors.resetFlopEncoder();
-		sensors.resetIntakeEncoders();
-		RobotLogger.toast("Zeroed!");
+		testThread = new Thread() {
+			public void run() {
+				SystemTest testModule = new SystemTest(sensors, driveTrain, mechanismMotors);
+				testModule.beginTest();	
+			}
+		};
+		testThread.start();
+		
+		new Thread() {
+			public void run() {
+				while(true) {
+					if(DriverStation.getInstance().isDisabled()) {
+						RobotLogger.toast("Stopped Testing!");
+						disabledPeriodic();
+						testThread.interrupt();
+						testThread.stop();
+						testThread = null;
+						break;
+					}
+					try {
+						Thread.sleep(1);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
 	}
-	
-	public void testPeriodic() {
-
-	}
-
 }

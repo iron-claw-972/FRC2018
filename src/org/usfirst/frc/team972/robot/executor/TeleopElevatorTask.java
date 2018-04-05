@@ -2,7 +2,6 @@ package org.usfirst.frc.team972.robot.executor;
 
 import org.usfirst.frc.team972.robot.RobotLogger;
 import org.usfirst.frc.team972.robot.executor.auto.ControlElevatorTask;
-import org.usfirst.frc.team972.robot.executor.auto.ControlFlopTask;
 import org.usfirst.frc.team972.robot.motors.MechanismActuators;
 import org.usfirst.frc.team972.robot.ui.UserInputGamepad;
 

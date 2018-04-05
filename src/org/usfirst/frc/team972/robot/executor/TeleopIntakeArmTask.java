@@ -15,8 +15,8 @@ public class TeleopIntakeArmTask extends Task {
 	
 	boolean clampModeToggle = false;
 	
-	private final double CLAMP_REV = 0.6;
-	private final double OPEN_REV = 0.5;
+	private final double CLAMP_REV = 1.05;
+	private final double OPEN_REV = 0.935;
 	private final double BACK_REV = 0;
 	
 	char currentMode = 'B';
@@ -27,10 +27,12 @@ public class TeleopIntakeArmTask extends Task {
 		super(_executionTime);
 		uig = _uig;
 		armControl = _armControl;
+		sensors = _sensors;
 	}
 
 	@Override
 	public void init(double dt) {
+		/*
 		if((Math.abs(sensors.getLeftIntake()) + Math.abs(sensors.getRightIntake())) > 3072) {
 			currentMode = 'C';
 			RobotLogger.toast("Intake Arm Detected as READY");
@@ -38,18 +40,32 @@ public class TeleopIntakeArmTask extends Task {
 			currentMode = 'B';
 			RobotLogger.toast("Intake Arm Detected as BACK");
 		}
+		*/
 	}
 
 	@Override
 	public void execute(double dt) {
 		Joystick joystick = uig.getStickB();
 		
+		double twistOffset = joystick.getRawAxis(3) * 0.2;
+		
+		System.out.println("twistOffset: " + twistOffset);
+	
 		boolean moveBackOverride = joystick.getRawButton(5);
+		boolean openArm = joystick.getRawButton(4);
+		boolean clampArm = joystick.getRawButton(3);
+		
+		if(openArm) {
+			clampModeToggle = true;
+		} else if(clampArm) {
+			clampModeToggle = false;
+		}
 		
 		if(moveBackOverride) {
 			currentMode = 'B';
-		} else if(joystick.getRawButtonPressed(3)) {
-			clampModeToggle = !clampModeToggle;
+			clampModeToggle = true;
+		} else if(clampArm || openArm) {
+			//clampModeToggle = !clampModeToggle;
 			currentMode = 'C';
 		}
 
@@ -57,9 +73,9 @@ public class TeleopIntakeArmTask extends Task {
 			armControl.setPositionTarget(BACK_REV, BACK_REV);
 		} else if(currentMode == 'C') {
 			if(clampModeToggle) {
-				armControl.setPositionTarget(CLAMP_REV, -CLAMP_REV); //figure this out at compy
+				armControl.setPositionTarget(CLAMP_REV + twistOffset, -CLAMP_REV + twistOffset); //figure this out at compy
 			} else {
-				armControl.setPositionTarget(OPEN_REV, -OPEN_REV); //figure out
+				armControl.setPositionTarget(OPEN_REV + twistOffset, -OPEN_REV + twistOffset); //figure out
 			}
 		}
 		

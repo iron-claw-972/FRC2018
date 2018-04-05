@@ -108,6 +108,7 @@ public class Sensors {
 
 	public void resetIntakeEncoders() {
 		intakeLeft.setSelectedSensorPosition(0, 0, 0);
+		intakeRight.setSelectedSensorPosition(0, 0, 0);
 	}
 	
 	public int getLeftIntake() {

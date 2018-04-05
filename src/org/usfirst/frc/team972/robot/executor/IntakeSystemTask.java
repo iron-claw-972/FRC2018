@@ -55,7 +55,7 @@ public class IntakeSystemTask extends Task{
 			intakeOutputPower = interpolateValues(intakeMotorPower, intakeOutputPower);
 		} else if(reverseIntakeMotors) {
 			easingValue = 0.5;
-			intakeOutputPower = interpolateValues(-0.8, intakeOutputPower);
+			intakeOutputPower = interpolateValues(-0.5, intakeOutputPower);
 		} else {
 			intakeOutputPower = 0;
 		}

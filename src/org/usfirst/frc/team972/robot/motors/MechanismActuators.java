@@ -10,13 +10,13 @@ public class MechanismActuators {
 	
 	final double MAX_INTAKE_DRAW = 15;
 	
-	WPI_TalonSRX intakeMotorLeft;
-	WPI_TalonSRX intakeMotorRight;
+	public WPI_TalonSRX intakeMotorLeft;
+	public WPI_TalonSRX intakeMotorRight;
 	
-	WPI_TalonSRX winchLiftMotor;
+	WPI_TalonSRX winchLiftMotor;	//do not use
+	WPI_TalonSRX elevatorFlopMotor; //do not use
 	
-	WPI_TalonSRX elevatorFlopMotor;
-	WPI_TalonSRX elevatorLiftMotor;
+	public WPI_TalonSRX elevatorLiftMotor;
 	
 	public WPI_TalonSRX intakeArmMotorLeft;
 	public WPI_TalonSRX intakeArmMotorRight;
@@ -58,12 +58,12 @@ public class MechanismActuators {
 	}
 	
 	public void RunIntakeMotors(double power) {
-		intakeMotorLeft.set(-power);
-		intakeMotorRight.set(power);
+		intakeMotorLeft.set(power);
+		intakeMotorRight.set(-power);
 	}
 	
 	public void RunWinchMotor(double power) {
-		winchLiftMotor.set(power);
+		//winchLiftMotor.set(power);
 	}
 	
 	public void RunElevatorLiftMotor(double power) {
@@ -77,23 +77,35 @@ public class MechanismActuators {
 	}
 
 	public void RunIntakeArmMotors(double left, double right) {
-		intakeArmMotorLeft.set(left);
-		intakeArmMotorRight.set(right);
+		if(left > 1) {
+			left = 1;
+		} else if(left < -1) {
+			left = -1;
+		}
+		
+		if(right > 1) {
+			right = 1;
+		} else if(right < -1) {
+			right = -1;
+		}
+		
+		intakeArmMotorLeft.set(-left * 0.25); //target 3 volts
+		intakeArmMotorRight.set(right * 0.25);
 	}
 	
 	public void RunFlopMotor(double power) {
-		elevatorFlopMotor.set(power);
+		//elevatorFlopMotor.set(power);
 	}
 	
 	public boolean IntakeMotorOverdraw() {
 		return (intakeMotorLeft.getOutputCurrent() > MAX_INTAKE_DRAW) || (intakeMotorRight.getOutputCurrent() > MAX_INTAKE_DRAW);  
 	}
 	
-	public WPI_TalonSRX SetupElevatorFlopMotor(int i) {
-		elevatorFlopMotor = new WPI_TalonSRX(i);
-		elevatorFlopMotor.setNeutralMode(NeutralMode.Brake);
-		elevatorFlopMotor.set(0);
+	//public WPI_TalonSRX SetupElevatorFlopMotor(int i) {
+		//elevatorFlopMotor = new WPI_TalonSRX(i);
+		//elevatorFlopMotor.setNeutralMode(NeutralMode.Brake);
+		//elevatorFlopMotor.set(0);
 		
-		return elevatorFlopMotor;
-	}
+		//return elevatorFlopMotor;
+	//}
 }
