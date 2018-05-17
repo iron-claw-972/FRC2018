@@ -15,19 +15,25 @@ public class ControlIntakeArmTask extends Task {
 	Sensors sensors;
 	MechanismActuators motors;
 	
-	double feedFowardGain = 0.9;
-	boolean allowedControl = false;
+	double feedFowardGain = 1;
+	public boolean allowedControl = false;
 	
 	double leftPositionTarget = 0;
 	double rightPositionTarget = 0;
 	
 	double GEARBOX_RATIO = 100;
 	
-	TrapezoidalMotionProfile mpLeft = new TrapezoidalMotionProfile(0.9, 1.25);
-	TrapezoidalMotionProfile mpRight = new TrapezoidalMotionProfile(0.9, 1.25);
+	final double SAFE_OUTWARDS_HITBOX = 0.3;
+	final double OUTWARDS_LIMIT = 1.15;
+	boolean setPositionOnce = false;
 	
-	PIDControl pidLeft = new PIDControl(9, 0, 0.25);
-	PIDControl pidRight = new PIDControl(9, 0, 0.25);
+	public double STARTING_PID_GAIN = 10;
+	
+	TrapezoidalMotionProfile mpLeft = new TrapezoidalMotionProfile(1.1, 2.2);
+	TrapezoidalMotionProfile mpRight = new TrapezoidalMotionProfile(1.1, 2.2);
+	
+	PIDControl pidLeft = new PIDControl(STARTING_PID_GAIN, 0, 0.25);
+	PIDControl pidRight = new PIDControl(STARTING_PID_GAIN, 0, 0.25);
 	
 	public ControlIntakeArmTask(double _executionTime, Sensors _sensors, MechanismActuators _motors) {
 		super(_executionTime);
@@ -41,10 +47,30 @@ public class ControlIntakeArmTask extends Task {
 		pidLeft.setOutputLimits(1);
 		pidRight.setOutputLimits(1);
 	}
+		
+	public void setGainP(double p) {
+		pidLeft.setP(p);
+		pidRight.setP(p);
+	}
 	
-	public void setPositionTargetOnce(double left, double right) {
-		mpLeft.setRealPositions(left);
-		mpRight.setRealPositions(right);
+	public double getLeftPos() {
+		double leftRealPos = -((double)sensors.getLeftIntake())/2048;
+		leftRealPos = leftRealPos/GEARBOX_RATIO;
+		return leftRealPos;
+	}
+	
+	public double getRightPos() {
+		double rightRealPos = ((double)sensors.getRightIntake())/2048;
+		rightRealPos = rightRealPos/GEARBOX_RATIO;
+		return rightRealPos;
+	}
+	
+	public void setPositionTargetOnceCycle(double dt) {
+		mpLeft.setRealPositions(getLeftPos());
+		mpRight.setRealPositions(getRightPos());
+		mpLeft.setTime(dt);
+		mpRight.setTime(dt);
+		setPositionOnce = true;
 	}
 	
 	public double[] update(TrapezoidalMotionProfile mp, double target, double dt, double real) {
@@ -55,20 +81,40 @@ public class ControlIntakeArmTask extends Task {
 		return new double[]{position, velocity};
 	}
 
+	public boolean isSafeOutwards() {
+		double leftRealPos = getLeftPos();
+		double rightRealPos = getRightPos();
+		
+		leftRealPos = Math.abs(leftRealPos);
+		rightRealPos = Math.abs(rightRealPos);
+		
+		if((Math.abs(leftRealPos) < SAFE_OUTWARDS_HITBOX) || (Math.abs(rightRealPos) < SAFE_OUTWARDS_HITBOX)) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
+	double lastLeftWant = 0;
+	double lastRightWant = 0;
+	
 	public void execute(double dt) {
-		double leftRealPos = -((double)sensors.getLeftIntake())/2048;
-		leftRealPos = leftRealPos/GEARBOX_RATIO;
+		if(setPositionOnce) {
+			setPositionTarget(getLeftPos(), getRightPos());
+			mpLeft.setRealPositions(getLeftPos());
+			mpRight.setRealPositions(getRightPos());
+			setPositionOnce = false;
+		}
+		
+		double leftRealPos = getLeftPos();
 		double[] leftDesiredState = update(mpLeft, leftPositionTarget, dt, leftRealPos);
 		pidLeft.setSetpoint(leftDesiredState[0]);
-		pidLeft.setF(leftDesiredState[1] * feedFowardGain);
-		double leftOutput = pidLeft.getOutput(leftRealPos); //position PID
+		double leftOutput = pidLeft.getOutput(leftRealPos) + (leftDesiredState[1] * feedFowardGain); //position PID
 		
-		double rightRealPos = ((double)sensors.getRightIntake())/2048;
-		rightRealPos = rightRealPos/GEARBOX_RATIO;
+		double rightRealPos = getRightPos();
 		double[] rightDesiredState = update(mpRight, rightPositionTarget, dt, rightRealPos);
-		pidRight.setSetpoint(rightDesiredState[0]);
-		pidRight.setF(rightDesiredState[1] * feedFowardGain);
-		double rightOutput = pidRight.getOutput(rightRealPos); //position PID
+		pidRight.setSetpoint(rightDesiredState[0]);;
+		double rightOutput = pidRight.getOutput(rightRealPos) + (rightDesiredState[1] * feedFowardGain); //position PID
 		
 		SmartDashboard.putNumber("left arm real pos", leftRealPos);
 		SmartDashboard.putNumber("left arm desired pos", leftDesiredState[0]);
@@ -76,18 +122,20 @@ public class ControlIntakeArmTask extends Task {
 		SmartDashboard.putNumber("right arm real pos", rightRealPos);
 		SmartDashboard.putNumber("right arm desired pos", rightDesiredState[0]);
 		
-		System.out.println(motors.intakeArmMotorLeft.getOutputCurrent() + motors.intakeArmMotorRight.getOutputCurrent());
-		RobotLogger.toast(leftRealPos + " " + rightRealPos + " " + leftDesiredState[0] + " " + rightDesiredState[0]);
+		lastLeftWant = leftDesiredState[0];
+		lastRightWant = rightDesiredState[0];
 		
-		motors.RunIntakeArmMotors(leftOutput, rightOutput);
+		if(allowedControl) {
+			motors.RunIntakeArmMotors(-rightOutput, leftOutput);
+		}
 	}
 	
 	public void setPositionTarget(double left, double right) {
-		if(Math.abs(left) > 1.15) {
+		if(Math.abs(left) > OUTWARDS_LIMIT) {
 			left = Math.signum(left) * 1.15;
 		}
 		
-		if(Math.abs(right) > 1.15) {
+		if(Math.abs(right) > OUTWARDS_LIMIT) {
 			right = Math.signum(right) * 1.15;
 		}
 		

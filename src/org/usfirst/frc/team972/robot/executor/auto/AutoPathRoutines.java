@@ -22,6 +22,7 @@ public class AutoPathRoutines {
 	AHRS ahrs;
 	MechanismActuators mechanismMotors;
 	
+	final double CLAMP_CUBE_AUTO_POS = 0.5;
 	final double SWITCH_AUTO_HEIGHT = 0.55;
 	final double SCALE_AUTO_HEIGHT = 0.9;
 	
@@ -45,7 +46,35 @@ public class AutoPathRoutines {
 
 		intakeArm.setPositionTarget(0, 0);
 		
+		intakeArm.allowedControl = false;
+		elevatorControl.allowedControl = false;
+		
 		switch(selectedFile) {
+			case "center_to_right_2_block_1":
+				elevatorControl.setControl(true);
+				elevatorControl.setElevatorPositionTarget(0.1);
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(2, 0.9, elevatorControl, intakeArm));
+				taskExecutor.addTask(new AutoElevatorTargetTask(3, SWITCH_AUTO_HEIGHT, elevatorControl, intakeArm));
+				performTraj("center_to_right_2_block_1", false);
+				taskExecutor.addTask(new AutoIntakeMechanism(0, 1, false, 0.8, sensors, mechanismMotors));
+				taskExecutor.addTask(new AutoElevatorTargetTask(1, 0, elevatorControl, intakeArm));
+				performTraj("center_to_right_2_block_2", true);
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(0, 0.7, elevatorControl, intakeArm));
+				taskExecutor.addTask(new AutoIntakeMechanism(0, 2, true, 0.6, sensors, mechanismMotors));
+				performTraj("1_meter", false);
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(0, 0.9, elevatorControl, intakeArm));
+				taskExecutor.addTask(new AutoElevatorTargetTask(0.5, SWITCH_AUTO_HEIGHT, elevatorControl, intakeArm));
+				performTraj("1_meter", true);
+				performTraj("center_to_right_2_block_5", false);
+				taskExecutor.addTask(new AutoIntakeMechanism(0, 1, false, 0.8, sensors, mechanismMotors));
+				break;
+			case "scale_drive":
+				elevatorControl.setControl(true);
+				elevatorControl.setElevatorPositionTarget(0.1);
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(2, 0.9, elevatorControl, intakeArm));
+				performTraj(selectedFile, false);
+				taskExecutor.addTask(new AutoElevatorTargetTask(3, SWITCH_AUTO_HEIGHT, elevatorControl, intakeArm));
+				break;
 			case "five_meters_foward":
 				performTraj(selectedFile, false);
 				break;
@@ -53,39 +82,51 @@ public class AutoPathRoutines {
 				performTraj(selectedFile, false);
 				break;
 			case "right_to_right_switch": // -- switches --
-				intakeArm.setPositionTarget(0.5, -0.5);
 				elevatorControl.setControl(true);
-				taskExecutor.addTask(new AutoElevatorTargetTask(1, SWITCH_AUTO_HEIGHT, elevatorControl));
-				performTraj("right_to_right_switch", false);
-				taskExecutor.addTask(new AutoIntakeMechanism(0, 0.75, false, 0.5, sensors, mechanismMotors));
-				performTrajWait("right_backout", 1, true, true);
+				elevatorControl.setElevatorPositionTarget(0.1);
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(2, 0.9, elevatorControl, intakeArm));
+				taskExecutor.addTask(new AutoElevatorTargetTask(3, SWITCH_AUTO_HEIGHT, elevatorControl, intakeArm));
+				
+				performTrajWait("right_to_right_switch", 1, false, false);
+				taskExecutor.addTask(new AutoIntakeMechanism(1, 1, false, 0.9, sensors, mechanismMotors));
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(2, 0.5, elevatorControl, intakeArm));
+				//performTrajWait("right_backout", 1, true, true);
 				break;
 			case "left_to_left_switch":
-				intakeArm.setPositionTarget(0.5, -0.5);
 				elevatorControl.setControl(true);
-				taskExecutor.addTask(new AutoElevatorTargetTask(1, SWITCH_AUTO_HEIGHT, elevatorControl));
-				performTraj("left_to_left_switch", false);
-				taskExecutor.addTask(new AutoIntakeMechanism(0, 0.75, false, 0.5, sensors, mechanismMotors));
-				performTrajWait("left_backout", 1, true, true);
+				elevatorControl.setElevatorPositionTarget(0.1);
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(2, 0.9, elevatorControl, intakeArm));
+				taskExecutor.addTask(new AutoElevatorTargetTask(3, SWITCH_AUTO_HEIGHT, elevatorControl, intakeArm));
+				
+				performTrajWait("left_to_left_switch", 1, false, false);
+				taskExecutor.addTask(new AutoIntakeMechanism(1, 1, false, 0.9, sensors, mechanismMotors));
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(2, 0.5, elevatorControl, intakeArm));
+				//performTrajWait("left_backout", 1, true, true);
 				break;	
 			case "center_to_right_switch": // -- center switches --
-				intakeArm.setPositionTarget(0.5, -0.5);
 				elevatorControl.setControl(true);
-				taskExecutor.addTask(new AutoElevatorTargetTask(1, SWITCH_AUTO_HEIGHT, elevatorControl));
+				elevatorControl.setElevatorPositionTarget(0.1);
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(2, 0.9, elevatorControl, intakeArm));
+				taskExecutor.addTask(new AutoElevatorTargetTask(3, SWITCH_AUTO_HEIGHT, elevatorControl, intakeArm));
+				
 				performTraj("center_to_right_switch", false);
-				taskExecutor.addTask(new AutoIntakeMechanism(0, 0.75, false, 0.5, sensors, mechanismMotors));
-				performTrajWait("right_backout", 1, true, true);
+				taskExecutor.addTask(new AutoIntakeMechanism(1, 1, false, 0.9, sensors, mechanismMotors));
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(10, 0.5, elevatorControl, intakeArm));
 				break;	
 			case "center_to_left_switch": //
-				intakeArm.setPositionTarget(0.5, -0.5);
 				elevatorControl.setControl(true);
-				taskExecutor.addTask(new AutoElevatorTargetTask(1, SWITCH_AUTO_HEIGHT, elevatorControl));
+				elevatorControl.setElevatorPositionTarget(0.1);
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(2, 0.9, elevatorControl, intakeArm));
+				taskExecutor.addTask(new AutoElevatorTargetTask(3, SWITCH_AUTO_HEIGHT, elevatorControl, intakeArm));
+				
 				performTraj("center_to_left_switch", false);
-				taskExecutor.addTask(new AutoIntakeMechanism(0, 0.75, false, 0.5, sensors, mechanismMotors));
-				performTrajWait("right_backout", 1, true, true);
+				taskExecutor.addTask(new AutoIntakeMechanism(1, 1, false, 0.9, sensors, mechanismMotors));
+				taskExecutor.addTask(new AutoIntakeArmTargetTask(10, 0.5, elevatorControl, intakeArm));
 				break;		
 			case "nothing": 
 				RobotLogger.toast("Auto Do Nothing! Only Perform Zeroing!");
+				intakeArm.allowedControl = false;
+				elevatorControl.allowedControl = false;
 				break;
 			default:
 				RobotLogger.toast("Unhandled Auto Pick: " + selectedFile, RobotLogger.URGENT);

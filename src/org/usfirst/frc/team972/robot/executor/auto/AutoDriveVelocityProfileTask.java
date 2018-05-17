@@ -45,6 +45,7 @@ public class AutoDriveVelocityProfileTask extends Task {
 		// TODO Auto-generated method stub
 		initTime = dt;
 		finalPos = (wheelTrajectories[0].getSegment(wheelTrajectories[0].getNumSegments()).pos + wheelTrajectories[0].getSegment(wheelTrajectories[0].getNumSegments()).pos) / (double) 2;
+		sensors.resetDriveEncoder();
 	}
 	
 	public int getSegmentDt(double currentTime) {

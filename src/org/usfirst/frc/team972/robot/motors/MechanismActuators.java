@@ -44,8 +44,8 @@ public class MechanismActuators {
 		intakeMotorLeft = new WPI_TalonSRX(left);
 		intakeMotorRight = new WPI_TalonSRX(right);
 		
-		intakeMotorLeft.setNeutralMode(NeutralMode.Coast);
-		intakeMotorRight.setNeutralMode(NeutralMode.Coast);
+		intakeMotorLeft.setNeutralMode(NeutralMode.Brake);
+		intakeMotorRight.setNeutralMode(NeutralMode.Brake);
 		
 		intakeMotorLeft.set(ControlMode.PercentOutput, 0);
 		intakeMotorRight.set(ControlMode.PercentOutput, 0);
@@ -58,8 +58,9 @@ public class MechanismActuators {
 	}
 	
 	public void RunIntakeMotors(double power) {
+		//power = -power;
 		intakeMotorLeft.set(power);
-		intakeMotorRight.set(-power);
+		intakeMotorRight.set(power);
 	}
 	
 	public void RunWinchMotor(double power) {
@@ -67,11 +68,13 @@ public class MechanismActuators {
 	}
 	
 	public void RunElevatorLiftMotor(double power) {
+		
 		if(power > 0.95) {
 			power = 0.95;
 		} else if(power < -0.95) {
 			power = -0.95;
 		}
+		
 		SmartDashboard.putNumber("elevator output", power);
 		elevatorLiftMotor.set(power);
 	}
@@ -89,8 +92,13 @@ public class MechanismActuators {
 			right = -1;
 		}
 		
-		intakeArmMotorLeft.set(-left * 0.25); //target 3 volts
-		intakeArmMotorRight.set(right * 0.25);
+		left = -left * 0.315;
+		right = -right * 0.315;
+
+		intakeArmMotorLeft.set(left); //target 3 volts
+		intakeArmMotorRight.set(right);
+		
+		SmartDashboard.putString("intake arm motor", left + " - " + right);
 	}
 	
 	public void RunFlopMotor(double power) {

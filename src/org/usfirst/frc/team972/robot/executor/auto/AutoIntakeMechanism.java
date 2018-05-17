@@ -19,6 +19,7 @@ public class AutoIntakeMechanism extends Task {
 
 	Sensors sensors;
 	MechanismActuators motors;
+	double sketchWait = 0;
 	
 	public AutoIntakeMechanism(double _executionTime, double _timeout, boolean _pullingIn, double _power, Sensors _sensors, MechanismActuators _motors) {
 		super(_executionTime);
@@ -39,6 +40,10 @@ public class AutoIntakeMechanism extends Task {
 		
 	}
 	
+	public void setSketchWait(double t) {
+		sketchWait = t;
+	}
+	
 	@Override
 	public void execute(double dt) {
 		/*
@@ -50,7 +55,10 @@ public class AutoIntakeMechanism extends Task {
 			super.destroy();
 		} else {
 			//boolean frontIntakeSensorValue = sensors.getFrontIntakeSensorValue();
-
+			if(dt < sketchWait) {
+				System.out.println("waiting for sketch wait");
+				return;
+			}
 			if(pullingIn) {
 				output = interpolateValues(-power, output);
 			} else {

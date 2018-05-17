@@ -12,13 +12,14 @@ public class AutoPicker {
 	public static SendableChooser overrideMode;
 	
 	public static void setup() {
+		RobotLogger.toast("Setting up AutoPicker");
 		sideChooser = new SendableChooser();
 		sideChooser.addDefault("Start Center Side", "center");
 		sideChooser.addObject("Start Right Side", "right");
 		sideChooser.addObject("Start Left Side", "left");
 		
 		modeChooser = new SendableChooser();
-		
+
 		modeChooser.addDefault("Do Switch Regular", "switch");
 		modeChooser.addDefault("Do Switch Regular, but do 2 block if we can!", "switch_2_block");
 
@@ -53,7 +54,7 @@ public class AutoPicker {
 						if(query.switchSide == 'L') {
 							return "center_to_left_switch";
 						} else if (query.switchSide == 'R') {
-							return "center_to_right_switch_2_block";
+							return "center_to_right_switch_2_block_1";
 						} else {
 							RobotLogger.toast("FMS Fault!!! Auto Broke during Center" + query.switchSide);
 						}
@@ -68,7 +69,7 @@ public class AutoPicker {
 					}
 				} else {
 					RobotLogger.toast("Auto Side Failure: " + side + " " + query.switchSide);
-					return "five_meters_foward";
+					return "three_meters_foward";
 				}
 			}
 					

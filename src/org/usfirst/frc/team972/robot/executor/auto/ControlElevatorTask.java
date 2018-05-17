@@ -24,18 +24,18 @@ public class ControlElevatorTask extends Task {
 	
 	double weightFeedFoward = 0.0;
 	
-	double maxHeight = 1.25;
+	double maxHeight = 1.4;
 	
-	PIDControl pidRightWinch = new PIDControl(4, 0.005, 0.025);
+	PIDControl pidRightWinch = new PIDControl(6.5, 0.005, 0.09);
 	
 	double ka = 0.05;
 	double kv = (double)1/2;
 
 	final double DIAMETER_ELEVATOR_WINCH = 0.05588; // meters, not accounting for cord windup radius.
-	final double GEARBOX_RATIO = 81;
+	final double GEARBOX_RATIO = 45;
 	
 	MechanismActuators elevatorMech;
-	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.5, 0.5); //0.9, 2.1
+	TrapezoidalMotionProfile mp = new TrapezoidalMotionProfile(0.75, 1.25); //0.9, 2.1
 	
 	Sensors sensors;
 	
@@ -89,12 +89,7 @@ public class ControlElevatorTask extends Task {
 		}
 		
 		if(checkElevatorSafety(realPosition, velocity) && allowedControl) {
-			if((position < 0.06) && (realPosition < 0.05)) {
-				elevatorMech.RunElevatorLiftMotor(0);
-				pidRightWinch.reset();
-			} else {
-				executePid(velocity, acceleration, realPosition, position, elevatorPositionTarget);
-			}
+			executePid(velocity, acceleration, realPosition, position, elevatorPositionTarget);
 		} else {
 			if(allowedControl) {
 				elevatorMech.RunElevatorLiftMotor(0);
@@ -131,7 +126,6 @@ public class ControlElevatorTask extends Task {
 		
 		double signnum = Math.signum(currWantPos - lastWantedPos);
 		feedfoward = interpolateValues((kv * Math.abs(velWant) * signnum) + (ka * Math.abs(accWant) * signnum), feedfoward);
-		pidRightWinch.setF(feedfoward);
 		double output = pidRightWinch.getOutput(realPos, currWantPos) + feedfoward + weightFeedFoward;
 		
 		SmartDashboard.putNumber("elevator ff", feedfoward);

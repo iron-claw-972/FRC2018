@@ -1,10 +1,11 @@
 /*
- * code
+ * tengamos code por la roboto
+ * ser usa en 2018
  */
 
 package org.usfirst.frc.team972.robot;
 
-import org.usfirst.frc.team972.robot.executor.IntakeSystemTask;
+import org.usfirst.frc.team972.robot.executor.TeleopIntakeTask;
 import org.usfirst.frc.team972.robot.executor.TaskExecutor;
 import org.usfirst.frc.team972.robot.executor.TeleopArcadeDriveTask;
 import org.usfirst.frc.team972.robot.executor.TeleopElevatorTask;
@@ -46,10 +47,9 @@ public class Robot extends IterativeRobot {
 
 	//PDP: 30
 	//PCM: 40
-
-	public static final double WHEEL_BASE_WIDTH = 0.6096;
+	
+	public static final double WHEEL_BASE_WIDTH = 0.838;
 	public static final double REAL_TIME_LOOP_HZ = 200;
-	public static final double MOTION_DT = 50;
 
 	AutoQuery autoQuery;
 	
@@ -73,20 +73,16 @@ public class Robot extends IterativeRobot {
 	public void robotInit() {
 		RobotLogger.toast("Robot Init");
 		
-		//hope this works?
-		//CameraServer.getInstance().startAutomaticCapture();
-		
-		/*
 		autoQuery = new AutoQuery();
 		ahrs = (AHRS) sensors.createAHRS();
 		sensors.SetupEncoderDriveTrain(2, 3, 0, 1);
 
-		mechanismMotors.SetupIntakeMotors(11, 12); // left, right
+		mechanismMotors.SetupIntakeMotors(11, 12);
 		
 		sensors.SetupEncoderElevator(mechanismMotors.SetupElevatorLiftMotor(1));		
 
-		mechanismMotors.SetupIntakeArmMotors(0, 0); //TODO: fill in
-		sensors.SetupIntake(mechanismMotors.intakeArmMotorLeft, mechanismMotors.intakeArmMotorRight);
+		mechanismMotors.SetupIntakeArmMotors(2, 10);
+		sensors.SetupIntake(mechanismMotors.intakeArmMotorRight, mechanismMotors.intakeArmMotorLeft);
 		
 		driveTrain.SetupProcedure(4, 5, 6, 
 								  7, 8, 9);
@@ -98,13 +94,10 @@ public class Robot extends IterativeRobot {
 
 		autoRoutine = new AutoPathRoutines(taskExecutor,
 				autoQuery, driveTrain, sensors, ahrs, mechanismMotors);
-		*/		
-		
-		mechanismMotors.SetupIntakeMotors(3,4);
-		mechanismMotors.SetupIntakeArmMotors(2, 1); //TODO: fill in
-		sensors.SetupIntake(mechanismMotors.intakeArmMotorLeft, mechanismMotors.intakeArmMotorRight);
+				
+		CameraSystem.startCamera();
 	}
-
+	
 	public void autonomousInit() {
 		RobotLogger.toast("Auto Init");
 		
@@ -116,13 +109,12 @@ public class Robot extends IterativeRobot {
 		ahrs.resetDisplacement();
 		
 		driveTrain.diagnosis();
+		driveTrain.setTalonsBrake();
 		driveTrain.shiftSolenoidDown();
 		 	
 		realStartTime = Timer.getFPGATimestamp();
 		autoQuery.getData(); // retrieve the game data
-		
-		taskExecutor.addTask(new AutoDriveSimpleTime(7, 4, 0.5, driveTrain));
-		
+
 		if(autoRoutine.pickRoutine()) {
 			RobotLogger.toast("Routine Picked Success: Starting Auto");
 			taskExecutor.autonomousStart();
@@ -131,20 +123,6 @@ public class Robot extends IterativeRobot {
 		}
 		
 		autoRealTimeControlLoop();
-		/*	
-		try {
-			RobotLogger.toast("Preparing for time based");
-			Thread.sleep(9000);
-			driveTrain.driveSidesPWM(0.5, 0.5);
-			Thread.sleep(5000);
-			RobotLogger.toast("Time based finished!");
-			driveTrain.driveSidesPWM(0, 0);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
-		
 	}
 
 	public void autonomousPeriodic() {
@@ -152,43 +130,45 @@ public class Robot extends IterativeRobot {
 	}
 
 	public void teleopInit() {
-		sensors.resetIntakeEncoders();
-		
 		// in a real match, we do not want to zero in teleop
 		//sensors.resetElevatorEncoder();
 		//sensors.resetFlopEncoder();
 		
 		RobotLogger.toast("Teleop Init");
 		
-		/*
 		sensors.resetDriveEncoders();
 		new Compressor(40).start();
 		
 		driveTrain.setTalonsPWM_follow();
 		driveTrain.diagnosis();
 		driveTrain.shiftSolenoidDown();
-		driveTrain.setTalonsCoast();
+		driveTrain.setTalonsBrake();
 
 		ahrs.reset();
 		ahrs.resetDisplacement();
 		
 		ControlElevatorTask elevatorControl = new ControlElevatorTask(0, mechanismMotors, sensors);
-		*/
 		ControlIntakeArmTask armControl = new ControlIntakeArmTask(0, sensors, mechanismMotors);
 		
-		//elevatorControl.realtimeTask = true;
+		elevatorControl.realtimeTask = true;
 		armControl.realtimeTask = true;
 		
-		//taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
-		//taskExecutor.addTask(new TeleopElevatorTask(0, uig, mechanismMotors, elevatorControl));
-		taskExecutor.addTask(new TeleopIntakeArmTask(0, uig, armControl, sensors));
+		taskExecutor.addTask(new TeleopArcadeDriveTask(0, uig, driveTrain, ahrs, sensors));
 		
-		//taskExecutor.addTask(elevatorControl);
+		TeleopIntakeTask intakeTask = new TeleopIntakeTask(0, uig, mechanismMotors, sensors);
+		taskExecutor.addTask(intakeTask);
+		
+		TeleopElevatorTask elevatorTask = new TeleopElevatorTask(0, uig, mechanismMotors, elevatorControl, armControl);
+		taskExecutor.addTask(elevatorTask);
+		
+		TeleopIntakeArmTask intakeArm = new TeleopIntakeArmTask(0, uig, armControl, sensors, mechanismMotors, elevatorControl, intakeTask, elevatorTask);
+		taskExecutor.addTask(intakeArm);
+		elevatorTask.GiveIntakeArm(intakeArm);
+				
+		taskExecutor.addTask(elevatorControl);
 		taskExecutor.addTask(armControl);
 		
-		taskExecutor.addTask(new IntakeSystemTask(0, uig, mechanismMotors, sensors));
-		
-		taskExecutor.teleopStart();
+		taskExecutor.teleopStart(); //prepare for startup!
 		
 		realStartTime = Timer.getFPGATimestamp();
 		
@@ -198,7 +178,7 @@ public class Robot extends IterativeRobot {
 	public void disabledPeriodic() {
 		taskExecutor.stop();
 		taskExecutor.forceClearTasks();
-		//driveTrain.stopCoast();
+		driveTrain.stopCoast();
 		controlLoopCycle = 0;
 	}
 	
@@ -236,6 +216,7 @@ public class Robot extends IterativeRobot {
 		while (this.isEnabled() && this.isOperatorControl()) {
 			double current_time = Timer.getFPGATimestamp() - realStartTime;
 			if(this.isNewDataAvailable()) {
+				CameraSystem.teleopUpdate(uig.getStickB());
 				taskExecutor.executeDT(current_time, false);
 			} else {
 				taskExecutor.executeDT(current_time, true);
@@ -252,35 +233,7 @@ public class Robot extends IterativeRobot {
 		taskExecutor.stop();
 	}
 	
-	Thread testThread;
 	public void testInit() {
-		testThread = new Thread() {
-			public void run() {
-				SystemTest testModule = new SystemTest(sensors, driveTrain, mechanismMotors);
-				testModule.beginTest();	
-			}
-		};
-		testThread.start();
-		
-		new Thread() {
-			public void run() {
-				while(true) {
-					if(DriverStation.getInstance().isDisabled()) {
-						RobotLogger.toast("Stopped Testing!");
-						disabledPeriodic();
-						testThread.interrupt();
-						testThread.stop();
-						testThread = null;
-						break;
-					}
-					try {
-						Thread.sleep(1);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-		}.start();
+		RobotLogger.toast("no test");
 	}
 }

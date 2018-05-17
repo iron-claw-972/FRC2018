@@ -29,7 +29,7 @@ public class SystemTest {
 
     //weird cap conventions
     int DRIVE_TRAIN_ENCODER_LIMIT = 2048;
-    int MAX_ARM_CURRENT_COMBINED = 15;
+    int MAX_ARM_CURRENT_COMBINED = 10;
     int MAX_ELEVATOR_CURRENT = 10;
     double MAX_ARM_ERROR = 0.1;
     double MAX_ELEVATOR_ERROR = 0.1;
@@ -49,7 +49,6 @@ public class SystemTest {
 
         RobotLogger.toast("Adding Tests...");
         		
-        /*
         tests.put("drive forward", new Test() {
             public boolean run() {
                 sensors.resetDriveEncoder();
@@ -74,11 +73,7 @@ public class SystemTest {
                     return false;
                 }
             }
-        });
-
-		*/
-        
-        
+        });    
         
         tests.put("turn on intake", new Test() {
             public boolean run() {
@@ -87,13 +82,11 @@ public class SystemTest {
             }
         });
         
-        
         tests.put("move arm forward", new Test() {
             double realStartTime = Timer.getFPGATimestamp();
             int inTheGood = 0;
             
             public boolean run() {
-            	intakeArmTask.setPositionTargetOnce((((double)sensors.getLeftIntake())/2048)/100, (((double)sensors.getRightIntake())/2048)/100);
                 intakeArmTask.setPositionTarget(0, 0);
                 for(int i=0; i<1000; i++) {
                 	if(DriverStation.getInstance().isDisabled()) break;
@@ -101,16 +94,13 @@ public class SystemTest {
                         this.abort = true;
                         return false;
                     }
-                    intakeArmTask.setPositionTarget(armForwardPosition, -armForwardPosition);
+                    if(i > 50) {
+                    	intakeArmTask.setPositionTarget(armForwardPosition, -armForwardPosition);
+                    }
                     double current_time = Timer.getFPGATimestamp() - realStartTime;
                     intakeArmTask.execute(current_time);
-
-                    double leftRealPos = ((double)sensors.getLeftIntake())/2048;
-                    leftRealPos = leftRealPos/(double)100;
-                    double rightRealPos = ((double)sensors.getRightIntake())/2048;
-                    rightRealPos = rightRealPos/(double)100;
-
-                    if((Math.abs(-armForwardPosition - leftRealPos) < MAX_ARM_ERROR) && (Math.abs(-armForwardPosition - rightRealPos) < MAX_ARM_ERROR)) {
+                    
+                    if(intakeArmTask.isSafeOutwards()) {
                         inTheGood++;
                     } else {
                         inTheGood = 0;
@@ -143,8 +133,6 @@ public class SystemTest {
             double realStartTime = Timer.getFPGATimestamp();
             int inTheGood = 0;
             public boolean run() {
-            	intakeArmTask.setPositionTargetOnce((((double)sensors.getLeftIntake())/2048)/100, (((double)sensors.getRightIntake())/2048)/100);
-                intakeArmTask.setPositionTarget(0, 0);
                 for(int i=0; i<1000; i++) {
                 	if(DriverStation.getInstance().isDisabled()) break;
                     if((motors.intakeArmMotorLeft.getOutputCurrent() + motors.intakeArmMotorRight.getOutputCurrent()) > MAX_ARM_CURRENT_COMBINED) {
@@ -152,13 +140,14 @@ public class SystemTest {
                         return false;
                     }
                     
+                    if(i > 50) {
+                    	intakeArmTask.setPositionTarget(0, 0);
+                    }
+                    
                     double current_time = Timer.getFPGATimestamp() - realStartTime;
                     intakeArmTask.execute(current_time);
-
-                    double leftRealPos = (((double)sensors.getLeftIntake())/2048)/100;
-                    double rightRealPos = (((double)sensors.getRightIntake())/2048)/100;
-
-                    if((Math.abs(-0 - leftRealPos) < MAX_ARM_ERROR) && (Math.abs(-0 - rightRealPos) < MAX_ARM_ERROR)) {
+                    
+                    if(intakeArmTask.isSafeOutwards() == false) {
                         inTheGood++;
                     } else {
                         inTheGood = 0;

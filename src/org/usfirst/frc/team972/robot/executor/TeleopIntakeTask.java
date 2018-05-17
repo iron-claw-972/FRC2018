@@ -7,7 +7,7 @@ import org.usfirst.frc.team972.robot.ui.UserInputGamepad;
 
 import edu.wpi.first.wpilibj.Joystick;
 
-public class IntakeSystemTask extends Task{
+public class TeleopIntakeTask extends Task{
 	
 	MechanismActuators mechanismMotors;
 	UserInputGamepad uig;
@@ -15,7 +15,7 @@ public class IntakeSystemTask extends Task{
 	
 	double easingValue = 0.1;
 	double intakeMotorPower = 0.5;
-	double intakeSlowPower = 0.15;
+	double intakeShootingPower = -0.5;
 	double overdrawReducePower = 0.1;
 	
 	double intakeOutputPower = 0;
@@ -26,7 +26,9 @@ public class IntakeSystemTask extends Task{
 	boolean backIntakeSensorValue;
 	boolean fireBlockSlow;
 	
-	public IntakeSystemTask(double _executionTime, UserInputGamepad _uig, MechanismActuators _mechanismMotors, Sensors _sensors) {
+	char mode = 'N';
+	
+	public TeleopIntakeTask(double _executionTime, UserInputGamepad _uig, MechanismActuators _mechanismMotors, Sensors _sensors) {
 		super(_executionTime);
 		uig = _uig;
 		mechanismMotors = _mechanismMotors;
@@ -49,23 +51,34 @@ public class IntakeSystemTask extends Task{
 		Joystick mainJoystick = uig.getStickB();
 		activateIntakeMotors = mainJoystick.getRawButton(1);
 		reverseIntakeMotors = mainJoystick.getRawButton(2);
+		double holdingThrottle = (1 - mainJoystick.getRawAxis(2));
 		
-		easingValue = 0.1;
-		if (activateIntakeMotors) {
-			intakeOutputPower = interpolateValues(intakeMotorPower, intakeOutputPower);
+		if(activateIntakeMotors) {
+			mode = 'I';
 		} else if(reverseIntakeMotors) {
-			easingValue = 0.5;
-			intakeOutputPower = interpolateValues(-0.5, intakeOutputPower);
+			mode = 'R';
+		} else {
+			mode = 'N';
+		}
+		
+		easingValue = 0.1; //reset to regular easing
+		
+		if (mode == 'I') {
+			intakeOutputPower = interpolateValues(intakeMotorPower, intakeOutputPower);
+		} else if(mode == 'R') {
+			easingValue = 0.2; //we want to shoot blocks out
+			intakeOutputPower = interpolateValues(intakeShootingPower, intakeOutputPower); 
+		} else if(holdingThrottle > 0.5) {
+			intakeOutputPower = (holdingThrottle * 0.118);
 		} else {
 			intakeOutputPower = 0;
 		}
 		
-		if((activateIntakeMotors || fireBlockSlow) && mechanismMotors.IntakeMotorOverdraw()) {
+		if (((mode == 'I') || (mode == 'H')) && mechanismMotors.IntakeMotorOverdraw()) {
 			intakeOutputPower = interpolateValues(Math.signum(intakeOutputPower) * overdrawReducePower, intakeOutputPower);
 		}
-		
+
 		mechanismMotors.RunIntakeMotors(-intakeOutputPower);
-		
 	}
 	
 }
